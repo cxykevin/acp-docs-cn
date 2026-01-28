@@ -30,16 +30,14 @@ authenticate方法的请求参数。
 **属性:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="methodId" type={"string"} required>
-  The ID of the authentication method to use.
-Must be one of the methods advertised in the initialize response.
+  要使用的认证方法的ID。
+必须是初始化响应中广告的方法之一。
 </ResponseField>
 
 #### <span class="font-mono">AuthenticateResponse</span>
@@ -51,17 +49,15 @@ Response to the `authenticate` method.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 
 ### <span class="font-mono">initialize</span>
 
-Establishes the connection with a client and negotiates protocol capabilities.
+与客户端建立连接并协商协议能力。
 
 This method is called once at the beginning of the connection to:
 
@@ -69,87 +65,83 @@ This method is called once at the beginning of the connection to:
 - Exchange capability information between client and agent
 - Determine available authentication methods
 
-The agent should respond with its supported protocol version and capabilities.
+代理应使用其支持的协议版本和能力进行响应。
 
-See protocol docs: [Initialization](https://agentclientprotocol.com/protocol/initialization)
+查看协议文档：[Initialization](https://agentclientprotocol.com/protocol/initialization)
 
 #### <span class="font-mono">InitializeRequest</span>
 
-Request parameters for the initialize method.
+初始化方法的请求参数。
 
-Sent by the client to establish connection and negotiate capabilities.
+由客户端发送以建立连接和协商能力。
 
-See protocol docs: [Initialization](https://agentclientprotocol.com/protocol/initialization)
+查看协议文档：[Initialization](https://agentclientprotocol.com/protocol/initialization)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="clientCapabilities" type={<a href="#clientcapabilities">ClientCapabilities</a>} >
-  Capabilities supported by the client.
+  客户端支持的能力。
 
     - Default: `{"fs":{"readTextFile":false,"writeTextFile":false},"terminal":false}`
 
 </ResponseField>
 <ResponseField name="clientInfo" type={<><span><a href="#implementation">Implementation</a></span><span> | null</span></>} >
-  Information about the Client name and version sent to the Agent.
+  发送给代理的客户端名称和版本信息。
 
 Note: in future versions of the protocol, this will be required.
 
 </ResponseField>
 <ResponseField name="protocolVersion" type={<a href="#protocolversion">ProtocolVersion</a>} required>
-  The latest protocol version supported by the client.
+  客户端支持的最新协议版本。
 </ResponseField>
 
 #### <span class="font-mono">InitializeResponse</span>
 
 Response to the `initialize` method.
 
-Contains the negotiated protocol version and agent capabilities.
+包含协商的协议版本和代理能力。
 
-See protocol docs: [Initialization](https://agentclientprotocol.com/protocol/initialization)
+查看协议文档：[Initialization](https://agentclientprotocol.com/protocol/initialization)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="agentCapabilities" type={<a href="#agentcapabilities">AgentCapabilities</a>} >
-  Capabilities supported by the agent.
+  代理支持的能力。
 
     - Default: `{"loadSession":false,"mcpCapabilities":{"http":false,"sse":false},"promptCapabilities":{"audio":false,"embeddedContext":false,"image":false},"sessionCapabilities":{}}`
 
 </ResponseField>
 <ResponseField name="agentInfo" type={<><span><a href="#implementation">Implementation</a></span><span> | null</span></>} >
-  Information about the Agent name and version sent to the Client.
+  发送给客户端的代理名称和版本信息。
 
 Note: in future versions of the protocol, this will be required.
 
 </ResponseField>
 <ResponseField name="authMethods" type={<a href="#authmethod">AuthMethod[]</a>} >
-  Authentication methods supported by the agent.
+  代理支持的认证方法。
 
     - Default: `[]`
 
 </ResponseField>
 <ResponseField name="protocolVersion" type={<a href="#protocolversion">ProtocolVersion</a>} required>
   The protocol version the client specified if supported by the agent,
-or the latest protocol version supported by the agent.
+或代理支持的最新协议版本。
 
 The client should disconnect, if it doesn't support this version.
 
@@ -158,9 +150,9 @@ The client should disconnect, if it doesn't support this version.
 <a id="session-cancel"></a>
 ### <span class="font-mono">session/cancel</span>
 
-Cancels ongoing operations for a session.
+取消会话的正在进行操作。
 
-This is a notification sent by the client to cancel an ongoing prompt turn.
+这是客户端发送的通知，用于取消正在进行的提示轮次。
 
 Upon receiving this notification, the Agent SHOULD:
 
@@ -169,34 +161,32 @@ Upon receiving this notification, the Agent SHOULD:
 - Send any pending `session/update` notifications
 - Respond to the original `session/prompt` request with `StopReason::Cancelled`
 
-See protocol docs: [Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
+查看协议文档：[Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
 
 #### <span class="font-mono">CancelNotification</span>
 
-Notification to cancel ongoing operations for a session.
+取消会话正在进行操作的通知。
 
-See protocol docs: [Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
+查看协议文档：[Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The ID of the session to cancel operations for.
+  要取消操作的会话ID。
 </ResponseField>
 
 <a id="session-load"></a>
 ### <span class="font-mono">session/load</span>
 
-Loads an existing session to resume a previous conversation.
+加载现有会话以恢复之前的对话。
 
 This method is only available if the agent advertises the `loadSession` capability.
 
@@ -206,67 +196,63 @@ The agent should:
 - Connect to the specified MCP servers
 - Stream the entire conversation history back to the client via notifications
 
-See protocol docs: [Loading Sessions](https://agentclientprotocol.com/protocol/session-setup#loading-sessions)
+查看协议文档：[Loading Sessions](https://agentclientprotocol.com/protocol/session-setup#loading-sessions)
 
 #### <span class="font-mono">LoadSessionRequest</span>
 
-Request parameters for loading an existing session.
+加载现有会话的请求参数。
 
 Only available if the Agent supports the `loadSession` capability.
 
-See protocol docs: [Loading Sessions](https://agentclientprotocol.com/protocol/session-setup#loading-sessions)
+查看协议文档：[Loading Sessions](https://agentclientprotocol.com/protocol/session-setup#loading-sessions)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="cwd" type={"string"} required>
-  The working directory for this session.
+  此会话的工作目录。
 </ResponseField>
 <ResponseField name="mcpServers" type={<a href="#mcpserver">McpServer[]</a>} required>
-  List of MCP servers to connect to for this session.
+  此会话要连接的MCP服务器列表。
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The ID of the session to load.
+  要加载的会话ID。
 </ResponseField>
 
 #### <span class="font-mono">LoadSessionResponse</span>
 
-Response from loading an existing session.
+加载现有会话的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="modes" type={<><span><a href="#sessionmodestate">SessionModeState</a></span><span> | null</span></>} >
-  Initial mode state if supported by the Agent
+  如果代理支持，则为初始模式状态
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 </ResponseField>
 
 <a id="session-new"></a>
 ### <span class="font-mono">session/new</span>
 
-Creates a new conversation session with the agent.
+与代理创建新的对话会话。
 
-Sessions represent independent conversation contexts with their own history and state.
+会话表示具有自己历史和状态的独立对话上下文。
 
 The agent should:
 
@@ -276,68 +262,64 @@ The agent should:
 
 May return an `auth_required` error if the agent requires authentication.
 
-See protocol docs: [Session Setup](https://agentclientprotocol.com/protocol/session-setup)
+查看协议文档：[Session Setup](https://agentclientprotocol.com/protocol/session-setup)
 
 #### <span class="font-mono">NewSessionRequest</span>
 
-Request parameters for creating a new session.
+创建新会话的请求参数。
 
-See protocol docs: [Creating a Session](https://agentclientprotocol.com/protocol/session-setup#creating-a-session)
+查看协议文档：[Creating a Session](https://agentclientprotocol.com/protocol/session-setup#creating-a-session)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="cwd" type={"string"} required>
-  The working directory for this session. Must be an absolute path.
+  此会话的工作目录。 Must be an absolute path.
 </ResponseField>
 <ResponseField name="mcpServers" type={<a href="#mcpserver">McpServer[]</a>} required>
-  List of MCP (Model Context Protocol) servers the agent should connect to.
+  代理应连接的MCP（Model Context Protocol）服务器列表。
 </ResponseField>
 
 #### <span class="font-mono">NewSessionResponse</span>
 
-Response from creating a new session.
+创建新会话的响应。
 
-See protocol docs: [Creating a Session](https://agentclientprotocol.com/protocol/session-setup#creating-a-session)
+查看协议文档：[Creating a Session](https://agentclientprotocol.com/protocol/session-setup#creating-a-session)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="modes" type={<><span><a href="#sessionmodestate">SessionModeState</a></span><span> | null</span></>} >
-  Initial mode state if supported by the Agent
+  如果代理支持，则为初始模式状态
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  Unique identifier for the created session.
+  创建会话的唯一标识符。
 
-Used in all subsequent requests for this conversation.
+用于此对话的所有后续请求。
 
 </ResponseField>
 
 <a id="session-prompt"></a>
 ### <span class="font-mono">session/prompt</span>
 
-Processes a user prompt within a session.
+在会话中处理用户提示。
 
 This method handles the whole lifecycle of a prompt:
 
@@ -348,26 +330,24 @@ This method handles the whole lifecycle of a prompt:
 - Executes any requested tool calls
 - Returns when the turn is complete with a stop reason
 
-See protocol docs: [Prompt Turn](https://agentclientprotocol.com/protocol/prompt-turn)
+查看协议文档：[Prompt Turn](https://agentclientprotocol.com/protocol/prompt-turn)
 
 #### <span class="font-mono">PromptRequest</span>
 
-Request parameters for sending a user prompt to the agent.
+向代理发送用户提示的请求参数。
 
 Contains the user's message and any additional context.
 
-See protocol docs: [User Message](https://agentclientprotocol.com/protocol/prompt-turn#1-user-message)
+查看协议文档：[User Message](https://agentclientprotocol.com/protocol/prompt-turn#1-user-message)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="prompt" type={<a href="#contentblock">ContentBlock[]</a>} required>
@@ -387,35 +367,33 @@ pieces of context from sources the agent may not have access to.
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The ID of the session to send this user message to
+  发送此用户消息的会话ID
 </ResponseField>
 
 #### <span class="font-mono">PromptResponse</span>
 
-Response from processing a user prompt.
+处理用户提示的响应。
 
-See protocol docs: [Check for Completion](https://agentclientprotocol.com/protocol/prompt-turn#4-check-for-completion)
+查看协议文档：[Check for Completion](https://agentclientprotocol.com/protocol/prompt-turn#4-check-for-completion)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="stopReason" type={<a href="#stopreason">StopReason</a>} required>
-  Indicates why the agent stopped processing the turn.
+  指示代理停止处理轮次的原因。
 </ResponseField>
 
 <a id="session-set_mode"></a>
 ### <span class="font-mono">session/set_mode</span>
 
-Sets the current mode for a session.
+设置会话的当前模式。
 
 Allows switching between different agent modes (e.g., "ask", "architect", "code")
 that affect system prompts, tool availability, and permission behaviors.
@@ -427,29 +405,27 @@ client via `current_mode_update` notifications.
 This method can be called at any time during a session, whether the Agent is
 idle or actively generating a response.
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 #### <span class="font-mono">SetSessionModeRequest</span>
 
-Request parameters for setting a session mode.
+设置会话模式的请求参数。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="modeId" type={<a href="#sessionmodeid">SessionModeId</a>} required>
-  The ID of the mode to set.
+  要设置的模式ID。
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The ID of the session to set the mode for.
+  要设置模式的会话ID。
 </ResponseField>
 
 #### <span class="font-mono">SetSessionModeResponse</span>
@@ -464,7 +440,7 @@ Response to `session/set_mode` method.
 
 ## Client
 
-Defines the interface that ACP-compliant clients must implement.
+定义符合ACP的客户端必须实现的接口。
 
 Clients are typically code editors (IDEs, text editors) that provide the interface
 between users and AI agents. They manage the environment, handle user interactions,
@@ -478,11 +454,11 @@ Reads content from a text file in the client's file system.
 Only available if the client advertises the `fs.readTextFile` capability.
 Allows the agent to access file contents within the client's environment.
 
-See protocol docs: [Client](https://agentclientprotocol.com/protocol/overview#client)
+查看协议文档：[Client](https://agentclientprotocol.com/protocol/overview#client)
 
 #### <span class="font-mono">ReadTextFileRequest</span>
 
-Request to read content from a text file.
+从文本文件读取内容的请求。
 
 Only available if the client supports the `fs.readTextFile` capability.
 
@@ -491,46 +467,42 @@ Only available if the client supports the `fs.readTextFile` capability.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="limit" type={"integer | null"} >
-  Maximum number of lines to read.
+  要读取的最大行数。
 
     - Minimum: `0`
 
 </ResponseField>
 <ResponseField name="line" type={"integer | null"} >
-  Line number to start reading from (1-based).
+  开始读取的行号（从1开始）。
 
     - Minimum: `0`
 
 </ResponseField>
 <ResponseField name="path" type={"string"} required>
-  Absolute path to the file to read.
+  要读取文件的绝对路径。
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 
 #### <span class="font-mono">ReadTextFileResponse</span>
 
-Response containing the contents of a text file.
+包含文本文件内容的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={"string"} required>
@@ -544,11 +516,11 @@ Writes content to a text file in the client's file system.
 Only available if the client advertises the `fs.writeTextFile` capability.
 Allows the agent to create or modify files within the client's environment.
 
-See protocol docs: [Client](https://agentclientprotocol.com/protocol/overview#client)
+查看协议文档：[Client](https://agentclientprotocol.com/protocol/overview#client)
 
 #### <span class="font-mono">WriteTextFileRequest</span>
 
-Request to write content to a text file.
+将内容写入文本文件的请求。
 
 Only available if the client supports the `fs.writeTextFile` capability.
 
@@ -557,21 +529,19 @@ Only available if the client supports the `fs.writeTextFile` capability.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={"string"} required>
-  The text content to write to the file.
+  要写入文件的文本内容。
 </ResponseField>
 <ResponseField name="path" type={"string"} required>
-  Absolute path to the file to write.
+  要写入文件的绝对路径。
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 
 #### <span class="font-mono">WriteTextFileResponse</span>
@@ -583,18 +553,16 @@ Response to `fs/write_text_file`
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 
 <a id="session-request_permission"></a>
 ### <span class="font-mono">session/request_permission</span>
 
-Requests permission from the user for a tool call operation.
+请求用户对工具调用操作的权限。
 
 Called by the agent when it needs user authorization before executing
 a potentially sensitive operation. The client should present the options
@@ -603,52 +571,48 @@ to the user and return their decision.
 If the client cancels the prompt turn via `session/cancel`, it MUST
 respond to this request with `RequestPermissionOutcome::Cancelled`.
 
-See protocol docs: [Requesting Permission](https://agentclientprotocol.com/protocol/tool-calls#requesting-permission)
+查看协议文档：[Requesting Permission](https://agentclientprotocol.com/protocol/tool-calls#requesting-permission)
 
 #### <span class="font-mono">RequestPermissionRequest</span>
 
-Request for user permission to execute a tool call.
+执行工具调用的用户权限请求。
 
-Sent when the agent needs authorization before performing a sensitive operation.
+当代理在执行敏感操作之前需要授权时发送。
 
-See protocol docs: [Requesting Permission](https://agentclientprotocol.com/protocol/tool-calls#requesting-permission)
+查看协议文档：[Requesting Permission](https://agentclientprotocol.com/protocol/tool-calls#requesting-permission)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="options" type={<a href="#permissionoption">PermissionOption[]</a>} required>
-  Available permission options for the user to choose from.
+  用户可选择的可用权限选项。
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 <ResponseField name="toolCall" type={<a href="#toolcallupdate">ToolCallUpdate</a>} required>
-  Details about the tool call requiring permission.
+  需要权限的工具调用的详细信息。
 </ResponseField>
 
 #### <span class="font-mono">RequestPermissionResponse</span>
 
-Response to a permission request.
+权限请求的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="outcome" type={<a href="#requestpermissionoutcome">RequestPermissionOutcome</a>} required>
@@ -658,7 +622,7 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 <a id="session-update"></a>
 ### <span class="font-mono">session/update</span>
 
-Handles session update notifications from the agent.
+处理来自代理的会话更新通知。
 
 This is a notification endpoint (no response expected) that receives
 real-time updates about session progress, including message chunks,
@@ -668,39 +632,37 @@ Note: Clients SHOULD continue accepting tool call updates even after
 sending a `session/cancel` notification, as the agent may send final
 updates before responding with the cancelled stop reason.
 
-See protocol docs: [Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
+查看协议文档：[Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
 
 #### <span class="font-mono">SessionNotification</span>
 
-Notification containing a session update from the agent.
+包含代理会话更新的通知。
 
-Used to stream real-time progress and results during prompt processing.
+用于在提示处理期间流式传输实时进度和结果。
 
-See protocol docs: [Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
+查看协议文档：[Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The ID of the session this update pertains to.
+  此更新相关的会话ID。
 </ResponseField>
 <ResponseField name="update" type={<a href="#sessionupdate">SessionUpdate</a>} required>
-  The actual update content.
+  实际的更新内容。
 </ResponseField>
 
 <a id="terminal-create"></a>
 ### <span class="font-mono">terminal/create</span>
 
-Executes a command in a new terminal
+在新终端中执行命令
 
 Only available if the `terminal` Client capability is set to `true`.
 
@@ -713,38 +675,36 @@ by using the `ToolCallContent::Terminal` variant.
 The Agent is responsible for releasing the terminal by using the `terminal/release`
 method.
 
-See protocol docs: [Terminals](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminals](https://agentclientprotocol.com/protocol/terminals)
 
 #### <span class="font-mono">CreateTerminalRequest</span>
 
-Request to create a new terminal and execute a command.
+创建新终端并执行命令的请求。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="args" type={<><span>"string"</span><span>[]</span></>} >
-  Array of command arguments.
+  命令参数数组。
 </ResponseField>
 <ResponseField name="command" type={"string"} required>
-  The command to execute.
+  要执行的命令。
 </ResponseField>
 <ResponseField name="cwd" type={"string | null"} >
-  Working directory for the command (absolute path).
+  命令的工作目录（绝对路径）。
 </ResponseField>
 <ResponseField name="env" type={<a href="#envvariable">EnvVariable[]</a>} >
-  Environment variables for the command.
+  命令的环境变量。
 </ResponseField>
 <ResponseField name="outputByteLimit" type={"integer | null"} >
-  Maximum number of output bytes to retain.
+  要保留的最大输出字节数。
 
 When the limit is exceeded, the Client truncates from the beginning of the output
 to stay within the limit.
@@ -757,33 +717,31 @@ specified limit.
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 
 #### <span class="font-mono">CreateTerminalResponse</span>
 
-Response containing the ID of the created terminal.
+包含创建的终端ID的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
-  The unique identifier for the created terminal.
+  创建的终端的唯一标识符。
 </ResponseField>
 
 <a id="terminal-kill"></a>
 ### <span class="font-mono">terminal/kill</span>
 
-Kills the terminal command without releasing the terminal
+终止终端命令而不释放终端
 
 While `terminal/release` will also kill the command, this method will keep
 the `TerminalId` valid so it can be used with other methods.
@@ -794,122 +752,114 @@ to the model.
 
 Note: `terminal/release` when `TerminalId` is no longer needed.
 
-See protocol docs: [Terminals](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminals](https://agentclientprotocol.com/protocol/terminals)
 
 #### <span class="font-mono">KillTerminalCommandRequest</span>
 
-Request to kill a terminal command without releasing the terminal.
+终止终端命令而不释放终端的请求。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
-  The ID of the terminal to kill.
+  要终止的终端ID。
 </ResponseField>
 
 #### <span class="font-mono">KillTerminalCommandResponse</span>
 
-Response to terminal/kill command method
+对terminal/kill命令方法的响应
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 
 <a id="terminal-output"></a>
 ### <span class="font-mono">terminal/output</span>
 
-Gets the terminal output and exit status
+获取终端输出和退出状态
 
-Returns the current content in the terminal without waiting for the command to exit.
-If the command has already exited, the exit status is included.
+返回终端中的当前内容而不等待命令退出。
+如果命令已退出，则包含退出状态。
 
-See protocol docs: [Terminals](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminals](https://agentclientprotocol.com/protocol/terminals)
 
 #### <span class="font-mono">TerminalOutputRequest</span>
 
-Request to get the current output and status of a terminal.
+获取终端当前输出和状态的请求。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
-  The ID of the terminal to get output from.
+  要获取输出的终端ID。
 </ResponseField>
 
 #### <span class="font-mono">TerminalOutputResponse</span>
 
-Response containing the terminal output and exit status.
+包含终端输出和退出状态的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="exitStatus" type={<><span><a href="#terminalexitstatus">TerminalExitStatus</a></span><span> | null</span></>} >
-  Exit status if the command has completed.
+  命令完成时的退出状态。
 </ResponseField>
 <ResponseField name="output" type={"string"} required>
-  The terminal output captured so far.
+  到目前为止捕获的终端输出。
 </ResponseField>
 <ResponseField name="truncated" type={"boolean"} required>
-  Whether the output was truncated due to byte limits.
+  输出是否因字节限制而被截断。
 </ResponseField>
 
 <a id="terminal-release"></a>
 ### <span class="font-mono">terminal/release</span>
 
-Releases a terminal
+释放终端
 
-The command is killed if it hasn't exited yet. Use `terminal/wait_for_exit`
-to wait for the command to exit before releasing the terminal.
+如果命令尚未退出，则将其终止。使用 terminal/wait_for_exit
+在释放终端之前等待命令退出。
 
-After release, the `TerminalId` can no longer be used with other `terminal/*` methods,
-but tool calls that already contain it, continue to display its output.
+释放后，TerminalId不能再与其他 terminal/* 方法一起使用，
+但已经包含它的工具调用将继续显示其输出。
 
-The `terminal/kill` method can be used to terminate the command without releasing
-the terminal, allowing the Agent to call `terminal/output` and other methods.
+terminal/kill方法可用于终止命令而不释放终端，
+从而允许代理调用 terminal/output 和其他方法。
 
-See protocol docs: [Terminals](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminals](https://agentclientprotocol.com/protocol/terminals)
 
 #### <span class="font-mono">ReleaseTerminalRequest</span>
 
@@ -920,15 +870,13 @@ Request to release a terminal and free its resources.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
   The ID of the terminal to release.
@@ -943,105 +891,96 @@ Response to terminal/release method
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 
 <a id="terminal-wait_for_exit"></a>
 ### <span class="font-mono">terminal/wait_for_exit</span>
 
-Waits for the terminal command to exit and return its exit status
+等待终端命令退出并返回其退出状态
 
-See protocol docs: [Terminals](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminals](https://agentclientprotocol.com/protocol/terminals)
 
 #### <span class="font-mono">WaitForTerminalExitRequest</span>
 
-Request to wait for a terminal command to exit.
+等待终端命令退出的请求。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="sessionId" type={<a href="#sessionid">SessionId</a>} required>
-  The session ID for this request.
+  此请求的会话ID。
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
-  The ID of the terminal to wait for.
+  要等待的终端ID。
 </ResponseField>
 
 #### <span class="font-mono">WaitForTerminalExitResponse</span>
 
-Response containing the exit status of a terminal command.
+包含终端命令退出状态的响应。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="exitCode" type={"integer | null"} >
-  The process exit code (may be null if terminated by signal).
+  进程退出代码（如果被信号终止可能为null）。
 
     - Minimum: `0`
 
 </ResponseField>
 <ResponseField name="signal" type={"string | null"} >
-  The signal that terminated the process (may be null if exited normally).
+  终止进程的信号（如果正常退出可能为null）。
 </ResponseField>
 
 ## <span class="font-mono">AgentCapabilities</span>
 
-Capabilities supported by the agent.
+代理支持的能力。
 
-Advertised during initialization to inform the client about
-available features and content types.
+在初始化期间广告，以告知客户端可用的功能和内容类型。
 
-See protocol docs: [Agent Capabilities](https://agentclientprotocol.com/protocol/initialization#agent-capabilities)
+查看协议文档：[Agent Capabilities](https://agentclientprotocol.com/protocol/initialization#agent-capabilities)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="loadSession" type={"boolean"} >
-  Whether the agent supports `session/load`.
+  代理是否支持 session/load。
 
     - Default: `false`
 
 </ResponseField>
 <ResponseField name="mcpCapabilities" type={<a href="#mcpcapabilities">McpCapabilities</a>} >
-  MCP capabilities supported by the agent.
+  代理支持的MCP能力。
 
     - Default: `{"http":false,"sse":false}`
 
 </ResponseField>
 <ResponseField name="promptCapabilities" type={<a href="#promptcapabilities">PromptCapabilities</a>} >
-  Prompt capabilities supported by the agent.
+  代理支持的提示能力。
 
     - Default: `{"audio":false,"embeddedContext":false,"image":false}`
 
@@ -1054,18 +993,16 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">Annotations</span>
 
-Optional annotations for the client. The client can use annotations to inform how objects are used or displayed
+客户端的可选注释。客户端可以使用注释来告知对象如何使用或显示。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="audience" type={<><span><a href="#role">Role[]</a></span><span> | null</span></>} >
@@ -1084,11 +1021,9 @@ Audio provided to or from an LLM.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1100,54 +1035,50 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">AuthMethod</span>
 
-Describes an available authentication method.
+描述可用的认证方法。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="description" type={"string | null"} >
-  Optional description providing more details about this authentication method.
+  可选描述，提供关于此认证方法的更多详细信息。
 </ResponseField>
 <ResponseField name="id" type={"string"} required>
-  Unique identifier for this authentication method.
+  此认证方法的唯一标识符。
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name of the authentication method.
+  认证方法的人类可读名称。
 </ResponseField>
 
 ## <span class="font-mono">AvailableCommand</span>
 
-Information about a command.
+命令的信息。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="description" type={"string"} required>
-  Human-readable description of what the command does.
+  命令功能的人类可读描述。
 </ResponseField>
 <ResponseField name="input" type={<><span><a href="#availablecommandinput">AvailableCommandInput</a></span><span> | null</span></>} >
   Input for the command if required
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Command name (e.g., `create_plan`, `research_codebase`).
+  命令名称（例如create_plan、research_codebase）。
 </ResponseField>
 
 ## <span class="font-mono">AvailableCommandInput</span>
@@ -1157,16 +1088,14 @@ The input specification for a command.
 **Type:** Union
 
 <ResponseField name="unstructured">
-All text that was typed after the command name is provided as input.
+命令名称后输入的所有文本都作为输入提供。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="hint" type={"string"} required>
@@ -1178,38 +1107,34 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">AvailableCommandsUpdate</span>
 
-Available commands are ready or have changed
+可用命令已准备就绪或已更改
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="availableCommands" type={<a href="#availablecommand">AvailableCommand[]</a>} required>
-  Commands the agent can execute
+  代理可以执行的命令
 </ResponseField>
 
 ## <span class="font-mono">BlobResourceContents</span>
 
-Binary resource contents.
+二进制资源内容。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="blob" type={"string"} required>
@@ -1221,34 +1146,30 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">ClientCapabilities</span>
 
-Capabilities supported by the client.
+客户端支持的能力。
 
-Advertised during initialization to inform the agent about
-available features and methods.
+在初始化期间广告，以告知代理可用的功能和方法。
 
-See protocol docs: [Client Capabilities](https://agentclientprotocol.com/protocol/initialization#client-capabilities)
+查看协议文档：[Client Capabilities](https://agentclientprotocol.com/protocol/initialization#client-capabilities)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="fs" type={<a href="#filesystemcapability">FileSystemCapability</a>} >
-  File system capabilities supported by the client.
-Determines which file operations the agent can request.
+  客户端支持的文件系统能力。决定代理可以请求哪些文件操作。
 
     - Default: `{"readTextFile":false,"writeTextFile":false}`
 
 </ResponseField>
 <ResponseField name="terminal" type={"boolean"} >
-  Whether the Client support all `terminal/*` methods.
+  客户端是否支持所有 terminal/* 方法。
 
     - Default: `false`
 
@@ -1256,29 +1177,27 @@ Determines which file operations the agent can request.
 
 ## <span class="font-mono">Content</span>
 
-Standard content block (text, images, resources).
+标准内容块（文本、图像、资源）。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  The actual content block.
+  实际的内容块。
 </ResponseField>
 
 ## <span class="font-mono">ContentBlock</span>
 
-Content blocks represent displayable information in the Agent Client Protocol.
+内容块表示代理客户端协议中的可显示信息。
 
-They provide a structured way to handle various types of user-facing content—whether
+它们提供了一种结构化方式来处理各种面向用户的内容类型—whether
 it's text from language models, images for analysis, or embedded resources for context.
 
 Content blocks appear in:
@@ -1290,24 +1209,22 @@ Content blocks appear in:
 This structure is compatible with the Model Context Protocol (MCP), enabling
 agents to seamlessly forward content from MCP tool outputs without transformation.
 
-See protocol docs: [Content](https://agentclientprotocol.com/protocol/content)
+查看协议文档：[Content](https://agentclientprotocol.com/protocol/content)
 
 **Type:** Union
 
 <ResponseField name="text" type="object">
-Text content. May be plain text or formatted with Markdown.
+文本内容。可以是纯文本或Markdown格式。
 
-All agents MUST support text content blocks in prompts.
+所有代理必须在提示中支持文本内容块。
 Clients SHOULD render this text as Markdown.
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1321,18 +1238,16 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="image" type="object">
-Images for visual context or analysis.
+用于视觉上下文或分析的图像。
 
-Requires the `image` prompt capability when included in prompts.
+在提示中包含时需要 image 提示能力。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1350,18 +1265,16 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="audio" type="object">
-Audio data for transcription or analysis.
+用于转录或分析的音频数据。
 
-Requires the `audio` prompt capability when included in prompts.
+在提示中包含时需要 audio 提示能力。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1377,18 +1290,16 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="resource_link" type="object">
-References to resources that the agent can access.
+代理可以访问的资源的引用。
 
-All agents MUST support resource links in prompts.
+所有代理必须在提示中支持资源链接。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1412,20 +1323,18 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="resource" type="object">
-Complete resource contents embedded directly in the message.
+直接嵌入消息中的完整资源内容。
 
-Preferred for including context as it avoids extra round-trips.
+首选用于包含上下文，因为它避免了额外的往返。
 
-Requires the `embeddedContext` prompt capability when included in prompts.
+在提示中包含时需要 embeddedContext 提示能力。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1440,90 +1349,82 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">ContentChunk</span>
 
-A streamed item of content
+流式内容项
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  A single item of content
+  单个内容项
 </ResponseField>
 
 ## <span class="font-mono">CurrentModeUpdate</span>
 
-The current mode of the session has changed
+会话的当前模式已更改
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="currentModeId" type={<a href="#sessionmodeid">SessionModeId</a>} required>
-  The ID of the current mode
+  当前模式的ID
 </ResponseField>
 
 ## <span class="font-mono">Diff</span>
 
-A diff representing file modifications.
+表示文件修改的差异。
 
-Shows changes to files in a format suitable for display in the client UI.
+以适合客户端UI显示的格式显示文件的更改。
 
-See protocol docs: [Content](https://agentclientprotocol.com/protocol/tool-calls#content)
+查看协议文档：[Content](https://agentclientprotocol.com/protocol/tool-calls#content)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="newText" type={"string"} required>
-  The new content after modification.
+  修改后的新内容。
 </ResponseField>
 <ResponseField name="oldText" type={"string | null"} >
-  The original content (None for new files).
+  原始内容（新文件为None）。
 </ResponseField>
 <ResponseField name="path" type={"string"} required>
-  The file path being modified.
+  正在修改的文件路径。
 </ResponseField>
 
 ## <span class="font-mono">EmbeddedResource</span>
 
-The contents of a resource, embedded into a prompt or tool call result.
+资源的内容，嵌入到提示或工具调用结果中。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1543,11 +1444,9 @@ Resource content that can be embedded in a message.
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="mimeType" type={"string | null"} >
@@ -1566,11 +1465,9 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="blob" type={"string"} required>
@@ -1585,42 +1482,40 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">EnvVariable</span>
 
-An environment variable to set when launching an MCP server.
+启动MCP服务器时设置的环境变量。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  The name of the environment variable.
+  环境变量名称。
 </ResponseField>
 <ResponseField name="value" type={"string"} required>
-  The value to set for the environment variable.
+  环境变量的值。
 </ResponseField>
 
 ## <span class="font-mono">Error</span>
 
-JSON-RPC error object.
+JSON-RPC错误对象。
 
 Represents an error that occurred during method execution, following the
 JSON-RPC 2.0 error object specification with optional additional data.
 
-See protocol docs: [JSON-RPC Error Object](https://www.jsonrpc.org/specification#error_object)
+查看协议文档：[JSON-RPC Error Object](https://www.jsonrpc.org/specification#error_object)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="code" type={<a href="#errorcode">ErrorCode</a>} required>
-  A number indicating the error type that occurred. This must be an integer as
+  表示发生的错误类型的数字。 This must be an integer as
   defined in the JSON-RPC specification.
 </ResponseField>
 <ResponseField name="data" type={"object"}>
@@ -1629,13 +1524,13 @@ See protocol docs: [JSON-RPC Error Object](https://www.jsonrpc.org/specification
   details.
 </ResponseField>
 <ResponseField name="message" type={"string"} required>
-  A string providing a short description of the error. The message should be
+  提供错误简短描述的字符串。 The message should be
   limited to a concise single sentence.
 </ResponseField>
 
 ## <span class="font-mono">ErrorCode</span>
 
-Predefined error codes for common JSON-RPC and ACP-specific errors.
+常见JSON-RPC和ACP特定错误的预定义错误代码。
 
 These codes follow the JSON-RPC 2.0 specification for standard errors
 and use the reserved range (-32000 to -32099) for protocol-specific errors.
@@ -1643,24 +1538,24 @@ and use the reserved range (-32000 to -32099) for protocol-specific errors.
 **Type:** Union
 
 <ResponseField name="-32700" type="int32">
-  **Parse error**: Invalid JSON was received by the server. An error occurred on
+  解析错误：服务器收到无效JSON。 An error occurred on
   the server while parsing the JSON text.
 </ResponseField>
 
 <ResponseField name="-32600" type="int32">
-  **Invalid request**: The JSON sent is not a valid Request object.
+  无效请求：发送的JSON不是有效的请求对象。
 </ResponseField>
 
 <ResponseField name="-32601" type="int32">
-  **Method not found**: The method does not exist or is not available.
+  方法未找到：方法不存在或不可用。
 </ResponseField>
 
 <ResponseField name="-32602" type="int32">
-  **Invalid params**: Invalid method parameter(s).
+  无效参数：无效的方法参数。
 </ResponseField>
 
 <ResponseField name="-32603" type="int32">
-  **Internal error**: Internal JSON-RPC error. Reserved for
+  内部错误：内部JSON-RPC错误。 Reserved for
   implementation-defined server errors.
 </ResponseField>
 
@@ -1674,24 +1569,24 @@ and use the reserved range (-32000 to -32099) for protocol-specific errors.
 </ResponseField>
 
 <ResponseField name="Other" type="int32">
-  Other undefined error code.
+  其他未定义的错误代码。
 </ResponseField>
 
 ## <span class="font-mono">ExtNotification</span>
 
-Allows the Agent to send an arbitrary notification that is not part of the ACP spec.
+允许代理发送不属于ACP规范的任意通知。
 Extension notifications provide a way to send one-way messages for custom functionality
 while maintaining protocol compatibility.
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 ## <span class="font-mono">ExtRequest</span>
 
-Allows for sending an arbitrary request that is not part of the ACP spec.
+允许发送不属于ACP规范的任意请求。
 Extension methods provide a way to add custom functionality while maintaining
 protocol compatibility.
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 ## <span class="font-mono">ExtResponse</span>
 
@@ -1699,35 +1594,33 @@ Allows for sending an arbitrary response to an `ExtRequest` that is not part of 
 Extension methods provide a way to add custom functionality while maintaining
 protocol compatibility.
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 ## <span class="font-mono">FileSystemCapability</span>
 
-Filesystem capabilities supported by the client.
+客户端支持的文件系统能力。
 File system capabilities that a client may support.
 
-See protocol docs: [FileSystem](https://agentclientprotocol.com/protocol/initialization#filesystem)
+查看协议文档：[FileSystem](https://agentclientprotocol.com/protocol/initialization#filesystem)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="readTextFile" type={"boolean"} >
-  Whether the Client supports `fs/read_text_file` requests.
+  客户端是否支持 fs/read_text_file 请求。
 
     - Default: `false`
 
 </ResponseField>
 <ResponseField name="writeTextFile" type={"boolean"} >
-  Whether the Client supports `fs/write_text_file` requests.
+  客户端是否支持 fs/write_text_file 请求。
 
     - Default: `false`
 
@@ -1735,41 +1628,37 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">HttpHeader</span>
 
-An HTTP header to set when making requests to the MCP server.
+向MCP服务器发出请求时要设置的HTTP头。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  The name of the HTTP header.
+  HTTP头名称。
 </ResponseField>
 <ResponseField name="value" type={"string"} required>
-  The value to set for the HTTP header.
+  HTTP头的值。
 </ResponseField>
 
 ## <span class="font-mono">ImageContent</span>
 
-An image provided to or from an LLM.
+提供给LLM或从LLM获取的图像。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -1783,7 +1672,7 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">Implementation</span>
 
-Metadata about the implementation of the client or agent.
+关于客户端或代理实现的信息。
 Describes the name and version of an MCP implementation, with an optional
 title for UI representation.
 
@@ -1792,11 +1681,9 @@ title for UI representation.
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
@@ -1807,7 +1694,7 @@ name fallback if title isn’t present.
   Intended for UI and end-user contexts — optimized to be human-readable
 and easily understood.
 
-If not provided, the name should be used for display.
+如果未提供，名称应用于显示。
 
 </ResponseField>
 <ResponseField name="version" type={"string"} required>
@@ -1817,28 +1704,26 @@ for debugging or metrics purposes. (e.g. "1.0.0").
 
 ## <span class="font-mono">McpCapabilities</span>
 
-MCP capabilities supported by the agent
+代理支持的MCP能力
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="http" type={"boolean"} >
-  Agent supports `McpServer::Http`.
+  代理支持 McpServer::Http。
 
     - Default: `false`
 
 </ResponseField>
 <ResponseField name="sse" type={"boolean"} >
-  Agent supports `McpServer::Sse`.
+  代理支持 McpServer::Sse。
 
     - Default: `false`
 
@@ -1851,96 +1736,90 @@ Configuration for connecting to an MCP (Model Context Protocol) server.
 MCP servers provide tools and context that the agent can use when
 processing prompts.
 
-See protocol docs: [MCP Servers](https://agentclientprotocol.com/protocol/session-setup#mcp-servers)
+查看协议文档：[MCP Servers](https://agentclientprotocol.com/protocol/session-setup#mcp-servers)
 
 **Type:** Union
 
 <ResponseField name="http" type="object">
-HTTP transport configuration
+HTTP传输配置
 
 Only available when the Agent capabilities indicate `mcp_capabilities.http` is `true`.
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="headers" type={<a href="#httpheader">HttpHeader[]</a>} required>
   HTTP headers to set when making requests to the MCP server.
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 <ResponseField name="type" type={"string"} required>
 </ResponseField>
 <ResponseField name="url" type={"string"} required>
-  URL to the MCP server.
+  MCP服务器的URL。
 </ResponseField>
 
 </Expandable>
 </ResponseField>
 
 <ResponseField name="sse" type="object">
-SSE transport configuration
+SSE传输配置
 
 Only available when the Agent capabilities indicate `mcp_capabilities.sse` is `true`.
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="headers" type={<a href="#httpheader">HttpHeader[]</a>} required>
   HTTP headers to set when making requests to the MCP server.
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 <ResponseField name="type" type={"string"} required>
 </ResponseField>
 <ResponseField name="url" type={"string"} required>
-  URL to the MCP server.
+  MCP服务器的URL。
 </ResponseField>
 
 </Expandable>
 </ResponseField>
 
 <ResponseField name="stdio">
-Stdio transport configuration
+Stdio传输配置
 
-All Agents MUST support this transport.
+所有代理必须支持此传输。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="args" type={<><span>"string"</span><span>[]</span></>} required>
-  Command-line arguments to pass to the MCP server.
+  传递给MCP服务器的命令行参数。
 </ResponseField>
 <ResponseField name="command" type={"string"} required>
-  Path to the MCP server executable.
+  MCP服务器可执行文件的路径。
 </ResponseField>
 <ResponseField name="env" type={<a href="#envvariable">EnvVariable[]</a>} required>
-  Environment variables to set when launching the MCP server.
+  启动MCP服务器时设置的环境变量。
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 
 </Expandable>
@@ -1948,280 +1827,266 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">McpServerHttp</span>
 
-HTTP transport configuration for MCP.
+HTTP传输配置 for MCP.
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="headers" type={<a href="#httpheader">HttpHeader[]</a>} required>
   HTTP headers to set when making requests to the MCP server.
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 <ResponseField name="url" type={"string"} required>
-  URL to the MCP server.
+  MCP服务器的URL。
 </ResponseField>
 
 ## <span class="font-mono">McpServerSse</span>
 
-SSE transport configuration for MCP.
+SSE传输配置 for MCP.
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="headers" type={<a href="#httpheader">HttpHeader[]</a>} required>
   HTTP headers to set when making requests to the MCP server.
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 <ResponseField name="url" type={"string"} required>
-  URL to the MCP server.
+  MCP服务器的URL。
 </ResponseField>
 
 ## <span class="font-mono">McpServerStdio</span>
 
-Stdio transport configuration for MCP.
+Stdio传输配置 for MCP.
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="args" type={<><span>"string"</span><span>[]</span></>} required>
-  Command-line arguments to pass to the MCP server.
+  传递给MCP服务器的命令行参数。
 </ResponseField>
 <ResponseField name="command" type={"string"} required>
-  Path to the MCP server executable.
+  MCP服务器可执行文件的路径。
 </ResponseField>
 <ResponseField name="env" type={<a href="#envvariable">EnvVariable[]</a>} required>
-  Environment variables to set when launching the MCP server.
+  启动MCP服务器时设置的环境变量。
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable name identifying this MCP server.
+  标识此MCP服务器的人类可读名称。
 </ResponseField>
 
 ## <span class="font-mono">PermissionOption</span>
 
-An option presented to the user when requesting permission.
+请求权限时向用户展示的选项。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="kind" type={<a href="#permissionoptionkind">PermissionOptionKind</a>} required>
-  Hint about the nature of this permission option.
+  关于此权限选项性质的提示。
 </ResponseField>
 <ResponseField name="name" type={"string"} required>
-  Human-readable label to display to the user.
+  向用户显示的人类可读标签。
 </ResponseField>
 <ResponseField name="optionId" type={<a href="#permissionoptionid">PermissionOptionId</a>} required>
-  Unique identifier for this permission option.
+  此权限选项的唯一标识符。
 </ResponseField>
 
 ## <span class="font-mono">PermissionOptionId</span>
 
-Unique identifier for a permission option.
+权限选项的唯一标识符。
 
 **Type:** `string`
 
 ## <span class="font-mono">PermissionOptionKind</span>
 
-The type of permission option being presented to the user.
+呈现给用户的权限选项类型。
 
-Helps clients choose appropriate icons and UI treatment.
+帮助客户端选择适当的图标和UI处理方式。
 
 **Type:** Union
 
 <ResponseField name="allow_once" type="string">
-  Allow this operation only this time.
+  仅此次允许此操作。
 </ResponseField>
 
 <ResponseField name="allow_always" type="string">
-  Allow this operation and remember the choice.
+  允许此操作并记住选择。
 </ResponseField>
 
 <ResponseField name="reject_once" type="string">
-  Reject this operation only this time.
+  仅此次拒绝此操作。
 </ResponseField>
 
 <ResponseField name="reject_always" type="string">
-  Reject this operation and remember the choice.
+  拒绝此操作并记住选择。
 </ResponseField>
 
 ## <span class="font-mono">Plan</span>
 
-An execution plan for accomplishing complex tasks.
+完成复杂任务的执行计划。
 
-Plans consist of multiple entries representing individual tasks or goals.
+计划由多个表示单个任务或目标的条目组成。
 Agents report plans to clients to provide visibility into their execution strategy.
 Plans can evolve during execution as the agent discovers new requirements or completes tasks.
 
-See protocol docs: [Agent Plan](https://agentclientprotocol.com/protocol/agent-plan)
+查看协议文档：[Agent Plan](https://agentclientprotocol.com/protocol/agent-plan)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="entries" type={<a href="#planentry">PlanEntry[]</a>} required>
-  The list of tasks to be accomplished.
+  要完成的任务列表。
 
 When updating a plan, the agent must send a complete list of all entries
-with their current status. The client replaces the entire plan with each update.
+with their current status. 客户端在每次更新时替换整个计划。
 
 </ResponseField>
 
 ## <span class="font-mono">PlanEntry</span>
 
-A single entry in the execution plan.
+执行计划中的单个条目。
 
 Represents a task or goal that the assistant intends to accomplish
 as part of fulfilling the user's request.
-See protocol docs: [Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
+查看协议文档：[Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={"string"} required>
-  Human-readable description of what this task aims to accomplish.
+  此任务旨在完成的人类可读描述。
 </ResponseField>
 <ResponseField name="priority" type={<a href="#planentrypriority">PlanEntryPriority</a>} required>
-  The relative importance of this task.
+  此任务的相对重要性。
 Used to indicate which tasks are most critical to the overall goal.
 </ResponseField>
 <ResponseField name="status" type={<a href="#planentrystatus">PlanEntryStatus</a>} required>
-  Current execution status of this task.
+  此任务的当前执行状态。
 </ResponseField>
 
 ## <span class="font-mono">PlanEntryPriority</span>
 
-Priority levels for plan entries.
+计划条目的优先级级别。
 
 Used to indicate the relative importance or urgency of different
 tasks in the execution plan.
-See protocol docs: [Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
+查看协议文档：[Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
 
 **Type:** Union
 
 <ResponseField name="high" type="string">
-  High priority task - critical to the overall goal.
+  高优先级任务——对整体目标至关重要。
 </ResponseField>
 
 <ResponseField name="medium" type="string">
-  Medium priority task - important but not critical.
+  中优先级任务——重要但非关键。
 </ResponseField>
 
 <ResponseField name="low" type="string">
-  Low priority task - nice to have but not essential.
+  低优先级任务——锦上添花但非必需。
 </ResponseField>
 
 ## <span class="font-mono">PlanEntryStatus</span>
 
-Status of a plan entry in the execution flow.
+执行流程中计划条目的状态。
 
-Tracks the lifecycle of each task from planning through completion.
-See protocol docs: [Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
+跟踪每个任务从规划到完成的生命周期。
+查看协议文档：[Plan Entries](https://agentclientprotocol.com/protocol/agent-plan#plan-entries)
 
 **Type:** Union
 
 <ResponseField name="pending" type="string">
-  The task has not started yet.
+  任务尚未开始。
 </ResponseField>
 
 <ResponseField name="in_progress" type="string">
-  The task is currently being worked on.
+  任务当前正在处理中。
 </ResponseField>
 
 <ResponseField name="completed" type="string">
-  The task has been successfully completed.
+  任务已成功完成。
 </ResponseField>
 
 ## <span class="font-mono">PromptCapabilities</span>
 
-Prompt capabilities supported by the agent in `session/prompt` requests.
+代理在 session/prompt 请求中支持的提示能力。
 
 Baseline agent functionality requires support for `ContentBlock::Text`
 and `ContentBlock::ResourceLink` in prompt requests.
 
-Other variants must be explicitly opted in to.
-Capabilities for different types of content in prompt requests.
+其他变体必须明确选择加入。
+提示请求中不同类型内容的能力。
 
 Indicates which content types beyond the baseline (text and resource links)
 the agent can process.
 
-See protocol docs: [Prompt Capabilities](https://agentclientprotocol.com/protocol/initialization#prompt-capabilities)
+查看协议文档：[Prompt Capabilities](https://agentclientprotocol.com/protocol/initialization#prompt-capabilities)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="audio" type={"boolean"} >
-  Agent supports `ContentBlock::Audio`.
+  代理支持 ContentBlock::Audio。
 
     - Default: `false`
 
 </ResponseField>
 <ResponseField name="embeddedContext" type={"boolean"} >
-  Agent supports embedded context in `session/prompt` requests.
+  代理支持在 session/prompt 请求中嵌入上下文。
 
 When enabled, the Client is allowed to include `ContentBlock::Resource`
 in prompt requests for pieces of context that are referenced in the message.
@@ -2230,7 +2095,7 @@ in prompt requests for pieces of context that are referenced in the message.
 
 </ResponseField>
 <ResponseField name="image" type={"boolean"} >
-  Agent supports `ContentBlock::Image`.
+  代理支持 ContentBlock::Image。
 
     - Default: `false`
 
@@ -2238,10 +2103,10 @@ in prompt requests for pieces of context that are referenced in the message.
 
 ## <span class="font-mono">ProtocolVersion</span>
 
-Protocol version identifier.
+协议版本标识符。
 
-This version is only bumped for breaking changes.
-Non-breaking changes should be introduced via capabilities.
+此版本仅在重大更改时才会更新。
+非重大更改应通过能力引入。
 
 **Type:** `integer (uint16)`
 
@@ -2252,11 +2117,11 @@ Non-breaking changes should be introduced via capabilities.
 
 ## <span class="font-mono">RequestId</span>
 
-JSON RPC Request Id
+JSON RPC请求ID
 
 An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification. The value SHOULD normally not be Null [1] and Numbers SHOULD NOT contain fractional parts [2]
 
-The Server MUST reply with the same value in the Response object if included. This member is used to correlate the context between the two objects.
+The Server MUST reply with the same value in the Response object if included. 此成员用于关联两个对象之间的上下文。
 
 [1] The use of Null as a value for the id member in a Request object is discouraged, because this specification uses a value of Null for Responses with an unknown id. Also, because JSON-RPC 1.0 uses an id value of Null for Notifications this could cause confusion in handling.
 
@@ -2278,18 +2143,18 @@ The Server MUST reply with the same value in the Response object if included. Th
 
 ## <span class="font-mono">RequestPermissionOutcome</span>
 
-The outcome of a permission request.
+权限请求的结果。
 
 **Type:** Union
 
 <ResponseField name="cancelled" type="object">
-The prompt turn was cancelled before the user responded.
+在用户响应之前提示轮次已被取消。
 
 When a client sends a `session/cancel` notification to cancel an ongoing
 prompt turn, it MUST respond to all pending `session/request_permission`
 requests with this `Cancelled` outcome.
 
-See protocol docs: [Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
+查看协议文档：[Cancellation](https://agentclientprotocol.com/protocol/prompt-turn#cancellation)
 
 <Expandable title="Properties">
 
@@ -2299,20 +2164,18 @@ See protocol docs: [Cancellation](https://agentclientprotocol.com/protocol/promp
 </ResponseField>
 
 <ResponseField name="selected" type="object">
-The user selected one of the provided options.
+用户选择了提供的选项之一。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="optionId" type={<a href="#permissionoptionid">PermissionOptionId</a>} required>
-  The ID of the option the user selected.
+  用户选择的选项的ID。
 </ResponseField>
 <ResponseField name="outcome" type={"string"} required>
 </ResponseField>
@@ -2329,11 +2192,9 @@ A resource that the server is capable of reading, included in a prompt or tool c
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -2353,7 +2214,7 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">Role</span>
 
-The sender or recipient of messages and data in a conversation.
+对话中消息和数据的发送者或接收者。
 
 **Type:** Enumeration
 
@@ -2364,27 +2225,25 @@ The sender or recipient of messages and data in a conversation.
 
 ## <span class="font-mono">SelectedPermissionOutcome</span>
 
-The user selected one of the provided options.
+用户选择了提供的选项之一。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="optionId" type={<a href="#permissionoptionid">PermissionOptionId</a>} required>
-  The ID of the option the user selected.
+  用户选择的选项的ID。
 </ResponseField>
 
 ## <span class="font-mono">SessionCapabilities</span>
 
-Session capabilities supported by the agent.
+代理支持的会话能力。
 
 As a baseline, all Agents **MUST** support `session/new`, `session/prompt`, `session/cancel`, and `session/update`.
 
@@ -2392,18 +2251,16 @@ Optionally, they **MAY** support other session methods and notifications by spec
 
 Note: `session/load` is still handled by the top-level `load_session` capability. This will be unified in future versions of the protocol.
 
-See protocol docs: [Session Capabilities](https://agentclientprotocol.com/protocol/initialization#session-capabilities)
+查看协议文档：[Session Capabilities](https://agentclientprotocol.com/protocol/initialization#session-capabilities)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 
@@ -2414,26 +2271,24 @@ A unique identifier for a conversation session between a client and agent.
 Sessions maintain their own context, conversation history, and state,
 allowing multiple independent interactions with the same agent.
 
-See protocol docs: [Session ID](https://agentclientprotocol.com/protocol/session-setup#session-id)
+查看协议文档：[Session ID](https://agentclientprotocol.com/protocol/session-setup#session-id)
 
 **Type:** `string`
 
 ## <span class="font-mono">SessionMode</span>
 
-A mode the agent can operate in.
+代理可以操作的模式。
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="description" type={"string | null"} >
@@ -2445,40 +2300,38 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">SessionModeId</span>
 
-Unique identifier for a Session Mode.
+会话模式的唯一标识符。
 
 **Type:** `string`
 
 ## <span class="font-mono">SessionModeState</span>
 
-The set of modes and the one currently active.
+模式集和当前活动的模式。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="availableModes" type={<a href="#sessionmode">SessionMode[]</a>} required>
-  The set of modes that the Agent can operate in
+  代理可以操作的模式集
 </ResponseField>
 <ResponseField name="currentModeId" type={<a href="#sessionmodeid">SessionModeId</a>} required>
-  The current mode the Agent is in.
+  代理当前的模式。
 </ResponseField>
 
 ## <span class="font-mono">SessionUpdate</span>
 
-Different types of updates that can be sent during session processing.
+会话处理期间可以发送的不同类型的更新。
 
 These updates provide real-time feedback about the agent's progress.
 
-See protocol docs: [Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
+查看协议文档：[Agent Reports Output](https://agentclientprotocol.com/protocol/prompt-turn#3-agent-reports-output)
 
 **Type:** Union
 
@@ -2488,15 +2341,13 @@ A chunk of the user's message being streamed.
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  A single item of content
+  单个内容项
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
@@ -2510,15 +2361,13 @@ A chunk of the agent's response being streamed.
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  A single item of content
+  单个内容项
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
@@ -2532,15 +2381,13 @@ A chunk of the agent's internal reasoning being streamed.
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  A single item of content
+  单个内容项
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
@@ -2549,88 +2396,84 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="tool_call" type="object">
-Notification that a new tool call has been initiated.
+已启动新工具调用的通知。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#toolcallcontent">ToolCallContent[]</a>} >
-  Content produced by the tool call.
+  工具调用产生的内容。
 </ResponseField>
 <ResponseField name="kind" type={<a href="#toolkind">ToolKind</a>} >
-  The category of tool being invoked.
-Helps clients choose appropriate icons and UI treatment.
+  被调用工具的类别。
+帮助客户端选择适当的图标和UI处理方式。
 </ResponseField>
 <ResponseField name="locations" type={<a href="#toolcalllocation">ToolCallLocation[]</a>} >
-  File locations affected by this tool call.
+  此工具调用影响的文件位置。
 Enables "follow-along" features in clients.
 </ResponseField>
 <ResponseField name="rawInput" type={"object"} >
-  Raw input parameters sent to the tool.
+  发送给工具的原始输入参数。
 </ResponseField>
 <ResponseField name="rawOutput" type={"object"} >
-  Raw output returned by the tool.
+  工具返回的原始输出。
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
 <ResponseField name="status" type={<a href="#toolcallstatus">ToolCallStatus</a>} >
-  Current execution status of the tool call.
+  工具调用的当前执行状态。
 </ResponseField>
 <ResponseField name="title" type={"string"} required>
-  Human-readable title describing what the tool is doing.
+  描述工具正在做什么的人类可读标题。
 </ResponseField>
 <ResponseField name="toolCallId" type={<a href="#toolcallid">ToolCallId</a>} required>
-  Unique identifier for this tool call within the session.
+  会话中此工具调用的唯一标识符。
 </ResponseField>
 
 </Expandable>
 </ResponseField>
 
 <ResponseField name="tool_call_update" type="object">
-Update on the status or results of a tool call.
+工具调用状态或结果的更新。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<><span><a href="#toolcallcontent">ToolCallContent[]</a></span><span> | null</span></>} >
-  Replace the content collection.
+  替换内容集合。
 </ResponseField>
 <ResponseField name="kind" type={<><span><a href="#toolkind">ToolKind</a></span><span> | null</span></>} >
-  Update the tool kind.
+  更新工具类型。
 </ResponseField>
 <ResponseField name="locations" type={<><span><a href="#toolcalllocation">ToolCallLocation[]</a></span><span> | null</span></>} >
-  Replace the locations collection.
+  替换位置集合。
 </ResponseField>
 <ResponseField name="rawInput" type={"object"} >
-  Update the raw input.
+  更新原始输入。
 </ResponseField>
 <ResponseField name="rawOutput" type={"object"} >
-  Update the raw output.
+  更新原始输出。
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
 <ResponseField name="status" type={<><span><a href="#toolcallstatus">ToolCallStatus</a></span><span> | null</span></>} >
-  Update the execution status.
+  更新执行状态。
 </ResponseField>
 <ResponseField name="title" type={"string | null"} >
-  Update the human-readable title.
+  更新人类可读标题。
 </ResponseField>
 <ResponseField name="toolCallId" type={<a href="#toolcallid">ToolCallId</a>} required>
-  The ID of the tool call being updated.
+  被更新的工具调用的ID。
 </ResponseField>
 
 </Expandable>
@@ -2638,23 +2481,21 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 <ResponseField name="plan" type="object">
 The agent's execution plan for complex tasks.
-See protocol docs: [Agent Plan](https://agentclientprotocol.com/protocol/agent-plan)
+查看协议文档：[Agent Plan](https://agentclientprotocol.com/protocol/agent-plan)
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="entries" type={<a href="#planentry">PlanEntry[]</a>} required>
-  The list of tasks to be accomplished.
+  要完成的任务列表。
 
 When updating a plan, the agent must send a complete list of all entries
-with their current status. The client replaces the entire plan with each update.
+with their current status. 客户端在每次更新时替换整个计划。
 
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
@@ -2664,20 +2505,18 @@ with their current status. The client replaces the entire plan with each update.
 </ResponseField>
 
 <ResponseField name="available_commands_update" type="object">
-Available commands are ready or have changed
+可用命令已准备就绪或已更改
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="availableCommands" type={<a href="#availablecommand">AvailableCommand[]</a>} required>
-  Commands the agent can execute
+  代理可以执行的命令
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
@@ -2686,22 +2525,20 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 </ResponseField>
 
 <ResponseField name="current_mode_update" type="object">
-The current mode of the session has changed
+会话的当前模式已更改
 
-See protocol docs: [Session Modes](https://agentclientprotocol.com/protocol/session-modes)
+查看协议文档：[Session Modes](https://agentclientprotocol.com/protocol/session-modes)
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="currentModeId" type={<a href="#sessionmodeid">SessionModeId</a>} required>
-  The ID of the current mode
+  当前模式的ID
 </ResponseField>
 <ResponseField name="sessionUpdate" type={"string"} required>
 </ResponseField>
@@ -2711,18 +2548,18 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">StopReason</span>
 
-Reasons why an agent stops processing a prompt turn.
+代理停止处理提示轮次的原因。
 
-See protocol docs: [Stop Reasons](https://agentclientprotocol.com/protocol/prompt-turn#stop-reasons)
+查看协议文档：[Stop Reasons](https://agentclientprotocol.com/protocol/prompt-turn#stop-reasons)
 
 **Type:** Union
 
 <ResponseField name="end_turn" type="string">
-  The turn ended successfully.
+  轮次成功结束。
 </ResponseField>
 
 <ResponseField name="max_tokens" type="string">
-  The turn ended because the agent reached the maximum number of tokens.
+  轮次因代理达到最大token数而结束。
 </ResponseField>
 
 <ResponseField name="max_turn_requests" type="string">
@@ -2731,7 +2568,7 @@ See protocol docs: [Stop Reasons](https://agentclientprotocol.com/protocol/promp
 </ResponseField>
 
 <ResponseField name="refusal" type="string">
-  The turn ended because the agent refused to continue. The user prompt and
+  轮次因代理拒绝继续而结束。 The user prompt and
   everything that comes after it won't be included in the next prompt, so this
   should be reflected in the UI.
 </ResponseField>
@@ -2752,18 +2589,16 @@ Embed a terminal created with `terminal/create` by its id.
 
 The terminal must be added before calling `terminal/release`.
 
-See protocol docs: [Terminal](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminal](https://agentclientprotocol.com/protocol/terminals)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
@@ -2771,44 +2606,40 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">TerminalExitStatus</span>
 
-Exit status of a terminal command.
+终端命令的退出状态。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="exitCode" type={"integer | null"} >
-  The process exit code (may be null if terminated by signal).
+  进程退出代码（如果被信号终止可能为null）。
 
     - Minimum: `0`
 
 </ResponseField>
 <ResponseField name="signal" type={"string | null"} >
-  The signal that terminated the process (may be null if exited normally).
+  终止进程的信号（如果正常退出可能为null）。
 </ResponseField>
 
 ## <span class="font-mono">TextContent</span>
 
-Text provided to or from an LLM.
+提供给LLM或从LLM获取的文本。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="annotations" type={<><span><a href="#annotations">Annotations</a></span><span> | null</span></>} >
@@ -2818,18 +2649,16 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">TextResourceContents</span>
 
-Text-based resource contents.
+基于文本的资源内容。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="mimeType" type={"string | null"} >
@@ -2841,78 +2670,74 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">ToolCall</span>
 
-Represents a tool call that the language model has requested.
+表示语言模型请求的工具调用。
 
 Tool calls are actions that the agent executes on behalf of the language model,
 such as reading files, executing code, or fetching data from external sources.
 
-See protocol docs: [Tool Calls](https://agentclientprotocol.com/protocol/tool-calls)
+查看协议文档：[Tool Calls](https://agentclientprotocol.com/protocol/tool-calls)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#toolcallcontent">ToolCallContent[]</a>} >
-  Content produced by the tool call.
+  工具调用产生的内容。
 </ResponseField>
 <ResponseField name="kind" type={<a href="#toolkind">ToolKind</a>} >
-  The category of tool being invoked.
-Helps clients choose appropriate icons and UI treatment.
+  被调用工具的类别。
+帮助客户端选择适当的图标和UI处理方式。
 </ResponseField>
 <ResponseField name="locations" type={<a href="#toolcalllocation">ToolCallLocation[]</a>} >
-  File locations affected by this tool call.
+  此工具调用影响的文件位置。
 Enables "follow-along" features in clients.
 </ResponseField>
 <ResponseField name="rawInput" type={"object"} >
-  Raw input parameters sent to the tool.
+  发送给工具的原始输入参数。
 </ResponseField>
 <ResponseField name="rawOutput" type={"object"} >
-  Raw output returned by the tool.
+  工具返回的原始输出。
 </ResponseField>
 <ResponseField name="status" type={<a href="#toolcallstatus">ToolCallStatus</a>} >
-  Current execution status of the tool call.
+  工具调用的当前执行状态。
 </ResponseField>
 <ResponseField name="title" type={"string"} required>
-  Human-readable title describing what the tool is doing.
+  描述工具正在做什么的人类可读标题。
 </ResponseField>
 <ResponseField name="toolCallId" type={<a href="#toolcallid">ToolCallId</a>} required>
-  Unique identifier for this tool call within the session.
+  会话中此工具调用的唯一标识符。
 </ResponseField>
 
 ## <span class="font-mono">ToolCallContent</span>
 
-Content produced by a tool call.
+工具调用产生的内容。
 
 Tool calls can produce different types of content including
 standard content blocks (text, images) or file diffs.
 
-See protocol docs: [Content](https://agentclientprotocol.com/protocol/tool-calls#content)
+查看协议文档：[Content](https://agentclientprotocol.com/protocol/tool-calls#content)
 
 **Type:** Union
 
 <ResponseField name="content" type="object">
-Standard content block (text, images, resources).
+标准内容块（文本、图像、资源）。
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<a href="#contentblock">ContentBlock</a>} required>
-  The actual content block.
+  实际的内容块。
 </ResponseField>
 <ResponseField name="type" type={"string"} required>
 </ResponseField>
@@ -2926,21 +2751,19 @@ File modification shown as a diff.
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="newText" type={"string"} required>
-  The new content after modification.
+  修改后的新内容。
 </ResponseField>
 <ResponseField name="oldText" type={"string | null"} >
-  The original content (None for new files).
+  原始内容（新文件为None）。
 </ResponseField>
 <ResponseField name="path" type={"string"} required>
-  The file path being modified.
+  正在修改的文件路径。
 </ResponseField>
 <ResponseField name="type" type={"string"} required>
 </ResponseField>
@@ -2953,16 +2776,14 @@ Embed a terminal created with `terminal/create` by its id.
 
 The terminal must be added before calling `terminal/release`.
 
-See protocol docs: [Terminal](https://agentclientprotocol.com/protocol/terminals)
+查看协议文档：[Terminal](https://agentclientprotocol.com/protocol/terminals)
 
 <Expandable title="Properties">
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="terminalId" type={"string"} required>
@@ -2975,48 +2796,46 @@ See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/exte
 
 ## <span class="font-mono">ToolCallId</span>
 
-Unique identifier for a tool call within a session.
+会话中工具调用的唯一标识符。
 
 **Type:** `string`
 
 ## <span class="font-mono">ToolCallLocation</span>
 
-A file location being accessed or modified by a tool.
+被工具访问或修改的文件位置。
 
 Enables clients to implement "follow-along" features that track
 which files the agent is working with in real-time.
 
-See protocol docs: [Following the Agent](https://agentclientprotocol.com/protocol/tool-calls#following-the-agent)
+查看协议文档：[Following the Agent](https://agentclientprotocol.com/protocol/tool-calls#following-the-agent)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="line" type={"integer | null"} >
-  Optional line number within the file.
+  文件中的可选行号。
 
     - Minimum: `0`
 
 </ResponseField>
 <ResponseField name="path" type={"string"} required>
-  The file path being accessed or modified.
+  正在访问或修改的文件路径。
 </ResponseField>
 
 ## <span class="font-mono">ToolCallStatus</span>
 
-Execution status of a tool call.
+工具调用的执行状态。
 
 Tool calls progress through different statuses during their lifecycle.
 
-See protocol docs: [Status](https://agentclientprotocol.com/protocol/tool-calls#status)
+查看协议文档：[Status](https://agentclientprotocol.com/protocol/tool-calls#status)
 
 **Type:** Union
 
@@ -3026,128 +2845,124 @@ See protocol docs: [Status](https://agentclientprotocol.com/protocol/tool-calls#
 </ResponseField>
 
 <ResponseField name="in_progress" type="string">
-  The tool call is currently running.
+  工具调用当前正在运行。
 </ResponseField>
 
 <ResponseField name="completed" type="string">
-  The tool call completed successfully.
+  工具调用成功完成。
 </ResponseField>
 
 <ResponseField name="failed" type="string">
-  The tool call failed with an error.
+  工具调用失败并出现错误。
 </ResponseField>
 
 ## <span class="font-mono">ToolCallUpdate</span>
 
-An update to an existing tool call.
+对现有工具调用的更新。
 
-Used to report progress and results as tools execute. All fields except
+用于在工具执行时报告进度和结果。 All fields except
 the tool call ID are optional - only changed fields need to be included.
 
-See protocol docs: [Updating](https://agentclientprotocol.com/protocol/tool-calls#updating)
+查看协议文档：[Updating](https://agentclientprotocol.com/protocol/tool-calls#updating)
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="content" type={<><span><a href="#toolcallcontent">ToolCallContent[]</a></span><span> | null</span></>} >
-  Replace the content collection.
+  替换内容集合。
 </ResponseField>
 <ResponseField name="kind" type={<><span><a href="#toolkind">ToolKind</a></span><span> | null</span></>} >
-  Update the tool kind.
+  更新工具类型。
 </ResponseField>
 <ResponseField name="locations" type={<><span><a href="#toolcalllocation">ToolCallLocation[]</a></span><span> | null</span></>} >
-  Replace the locations collection.
+  替换位置集合。
 </ResponseField>
 <ResponseField name="rawInput" type={"object"} >
-  Update the raw input.
+  更新原始输入。
 </ResponseField>
 <ResponseField name="rawOutput" type={"object"} >
-  Update the raw output.
+  更新原始输出。
 </ResponseField>
 <ResponseField name="status" type={<><span><a href="#toolcallstatus">ToolCallStatus</a></span><span> | null</span></>} >
-  Update the execution status.
+  更新执行状态。
 </ResponseField>
 <ResponseField name="title" type={"string | null"} >
-  Update the human-readable title.
+  更新人类可读标题。
 </ResponseField>
 <ResponseField name="toolCallId" type={<a href="#toolcallid">ToolCallId</a>} required>
-  The ID of the tool call being updated.
+  被更新的工具调用的ID。
 </ResponseField>
 
 ## <span class="font-mono">ToolKind</span>
 
-Categories of tools that can be invoked.
+可以调用的工具类别。
 
 Tool kinds help clients choose appropriate icons and optimize how they
 display tool execution progress.
 
-See protocol docs: [Creating](https://agentclientprotocol.com/protocol/tool-calls#creating)
+查看协议文档：[Creating](https://agentclientprotocol.com/protocol/tool-calls#creating)
 
 **Type:** Union
 
 <ResponseField name="read" type="string">
-  Reading files or data.
+  读取文件或数据。
 </ResponseField>
 
 <ResponseField name="edit" type="string">
-  Modifying files or content.
+  修改文件或内容。
 </ResponseField>
 
 <ResponseField name="delete" type="string">
-  Removing files or data.
+  删除文件或数据。
 </ResponseField>
 
 <ResponseField name="move" type="string">
-  Moving or renaming files.
+  移动或重命名文件。
 </ResponseField>
 
 <ResponseField name="search" type="string">
-  Searching for information.
+  搜索信息。
 </ResponseField>
 
 <ResponseField name="execute" type="string">
-  Running commands or code.
+  运行命令或代码。
 </ResponseField>
 
 <ResponseField name="think" type="string">
-  Internal reasoning or planning.
+  内部推理或规划。
 </ResponseField>
 
 <ResponseField name="fetch" type="string">
-  Retrieving external data.
+  检索外部数据。
 </ResponseField>
 
 <ResponseField name="switch_mode" type="string">
-  Switching the current session mode.
+  切换当前会话模式。
 </ResponseField>
 
 <ResponseField name="other" type="string">
-  Other tool types (default).
+  其他工具类型（默认）。
 </ResponseField>
 
 ## <span class="font-mono">UnstructuredCommandInput</span>
 
-All text that was typed after the command name is provided as input.
+命令名称后输入的所有文本都作为输入提供。
 
 **Type:** Object
 
 **Properties:**
 
 <ResponseField name="_meta" type={"object | null"} >
-  The _meta property is reserved by ACP to allow clients and agents to attach additional
-metadata to their interactions. Implementations MUST NOT make assumptions about values at
-these keys.
+  _meta属性由ACP保留，允许客户端和代理在交互中附加额外的元数据。实现不得对这些键的值做出假设。
 
-See protocol docs: [Extensibility](https://agentclientprotocol.com/protocol/extensibility)
+查看协议文档：[Extensibility](https://agentclientprotocol.com/protocol/extensibility)
 
 </ResponseField>
 <ResponseField name="hint" type={"string"} required>

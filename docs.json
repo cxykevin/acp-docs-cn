@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "maple",
   "name": "Agent Client Protocol",
-  "description": "The Agent Client Protocol (ACP) is a protocol that standardizes communication between code editors.",
+  "description": "Agent Client Protocol（ACP）是一种用于标准化代码编辑器之间通信的协议",
   "colors": {
     "primary": "#0084d1",
     "light": "#00bcff",
@@ -32,6 +32,10 @@
     "links": [
       {
         "label": "GitHub",
+        "href": "https://github.com/cxykevin/acp-docs-cn"
+      },
+      {
+        "label": "Origin",
         "href": "https://github.com/agentclientprotocol/agent-client-protocol"
       },
       {
@@ -47,10 +51,10 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Protocol",
+        "tab": "协议",
         "pages": [
           {
-            "group": "Overview",
+            "group": "概览",
             "pages": [
               "overview/introduction",
               "overview/architecture",
@@ -59,7 +63,7 @@
             ]
           },
           {
-            "group": "Protocol",
+            "group": "协议",
             "pages": [
               "protocol/overview",
               "protocol/initialization",
@@ -76,7 +80,7 @@
               "protocol/transports",
               "protocol/schema",
               {
-                "group": "Draft: In Progress and May Change",
+                "group": "草稿",
                 "hidden": true,
                 "pages": [
                   "protocol/draft/cancellation",
@@ -87,7 +91,7 @@
             ]
           },
           {
-            "group": "Libraries",
+            "group": "SDK",
             "pages": [
               "libraries/kotlin",
               "libraries/python",
@@ -97,17 +101,17 @@
             ]
           },
           {
-            "group": "Registry",
+            "group": "注册库",
             "pages": ["registry/index"]
           }
         ]
       },
       {
-        "tab": "RFDs",
+        "tab": "请求对话",
         "pages": [
           "rfds/about",
           {
-            "group": "Draft",
+            "group": "草稿",
             "pages": [
               "rfds/session-list",
               "rfds/session-fork",
@@ -124,12 +128,12 @@
               "rfds/rust-sdk-v1"
             ]
           },
-          { "group": "Preview", "pages": ["rfds/session-config-options"] },
-          { "group": "Completed", "pages": ["rfds/introduce-rfd-process"] }
+          { "group": "预览", "pages": ["rfds/session-config-options"] },
+          { "group": "完成", "pages": ["rfds/introduce-rfd-process"] }
         ]
       },
       {
-        "tab": "Community",
+        "tab": "社区",
         "pages": [
           "community/communication",
           "community/code-of-conduct",
@@ -139,11 +143,11 @@
         ]
       },
       {
-        "tab": "Updates",
+        "tab": "更新",
         "pages": ["updates"]
       },
       {
-        "tab": "Brand",
+        "tab": "标识",
         "pages": ["brand"]
       }
     ]
@@ -160,7 +164,7 @@
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/agentclientprotocol/agent-client-protocol"
+      "github": "https://github.com/cxykevin/acp-docs-cn"
     }
   },
   "contextual": {
