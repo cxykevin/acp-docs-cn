@@ -1,56 +1,56 @@
 ---
-title: "Session Config Options"
+title: "会话配置选项"
 ---
 
-Author(s): [@benbrandt](https://github.com/benbrandt)
+作者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-Allow Agents to provide an arbitrary list of configuration selectors for a given session. Rather than only supporting modes or models, we can allow each Agent to more flexibly specify which configurations to allow the Client to offer the user.
+允许代理为给定会话提供任意配置选择器列表。我们不仅可以支持模式或模型，还可以让每个代理更灵活地指定允许客户端向用户提供的配置。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-Currently, we allow Agents to [specify a list of modes](https://agentclientprotocol.com/protocol/session-modes) they can run in. The state of the currently selected item is allowed to be modified by both the [Client](https://agentclientprotocol.com/protocol/session-modes#from-the-client) and the [Agent](https://agentclientprotocol.com/protocol/session-modes#from-the-agent).
+目前，我们允许代理[指定它们可以运行的模式列表](https://agentclientprotocol.com/protocol/session-modes)。所选项目的状态可以被[客户端](https://agentclientprotocol.com/protocol/session-modes#from-the-client)和[代理](https://agentclientprotocol.com/protocol/session-modes#from-the-agent)修改。
 
-The obvious next selector was a [model selector](https://github.com/agentclientprotocol/agent-client-protocol/pull/182). However, when implementing this, it became clear that even for our current agents, it is not just as simple as "which model do you want?", but also which variant of a given model in terms of thinking parameters that might be better to express as yet another selector.
+明显的下一个选择器是[模型选择器](https://github.com/agentclientprotocol/agent-client-protocol/pull/182)。然而，在实现这一点时，很明显，即使对于我们当前的代理，也不只是"你想要哪个模型？"这么简单，还有关于在推理参数方面给定模型的变体，可能更好地表达为另一个选择器。
 
-Adding more hard-coded selector options would potentially lead the protocol to need to support many optional ones, or implementors would need to try to find the best existing selector to hack an option into if there wasn't an obvious fit. And if, a few months from now, no agents support something like a mode or reasoning selector, the protocol is left with leftover methods no one really uses, cluttering the interface.
+添加更多硬编码的选择器选项可能会导致协议需要支持许多可选选项，或者实现者需要尝试找到最佳现有选择器来强行输入选项（如果没有明显的适合）。而且，如果几个月后，没有代理支持模式或推理选择器之类的东西，协议就会剩下没人真正使用的剩余方法，使界面变得混乱。
 
-Since this space is moving fast, we ideally would find a more flexible option with enough constraints to allow Clients and Agents to both reason about the options provided.
+由于这个领域发展很快，我们理想地会找到一个足够约束的更灵活的选项，以允许客户端和代理都能对提供的选项进行推理。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-Instead, we can allow Agents to provide configuration options in the `session/new` response that not only provide a list of options, but also a `key` of some kind that is a unique identifier for that selector.
+相反，我们可以允许代理在 `session/new` 响应中提供配置选项，这些选项不仅提供选项列表，还提供一个某种类型的 `key`，作为该选择器的唯一标识符。
 
-Additionally, we can optionally allow an Agent to mark each option with a semantic category so that Clients can reliably distinguish broadly common option types (e.g. model selector vs session mode selector vs thought/reasoning level), without needing to infer meaning from the option `id` or `name`. This is intended for UX only (e.g. keyboard shortcuts, icons, preferred placement), and MUST NOT be required for correctness.
+此外，我们可以选择允许代理用语义类别标记每个选项，以便客户端可以可靠地广泛区分常见选项类型（例如模型选择器与会话模式选择器与思维/推理级别），而无需从选项 `id` 或 `name` 推断含义。这仅用于 UX（例如键盘快捷键、图标、首选位置），并且**不能**要求正确性。
 
-When the Client receives or sends an update to this selector, it would require both the selector key and the key for the new value.
+当客户端收到或发送对此选择器的更新时，它需要选择器 key 和新值的 key。
 
-To start, we could continue offering single-value selectors (dropdowns), but allow for the Agent to decide what those are for.
+一开始，我们可以继续提供单值选择器（下拉菜单），但允许代理决定这些是什么。
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-The Agent provides a list of available configuration options. The Agent cannot rely on the Client to set or even display these options, as it may not support it. So an Agent MUST always have a default configuration value for every option it provides, and MUST be able to run a turn without these configuration options being set.
+代理提供可用配置选项的列表。代理不能依赖客户端设置甚至显示这些选项，因为它可能不支持。因此，代理**必须**始终为它提供的每个选项提供一个默认配置值，并且**必须**能够在不设置这些配置选项的情况下运行一轮。
 
-The Client can render the options provided, send updated values to the Agent, and also display any changes the Agent made during the course of it's execution (for example, if it changes modes or models because of fallbacks or a change in strategy, so that the user can always see the current state).
+客户端可以渲染提供的选项，向代理发送更新值，并显示代理在执行过程中所做的任何更改（例如，如果它因为回退或策略变化而改变模式或模型，使用户始终可以看到当前状态）。
 
-Since we are moving to a world in which there are multiple configuration options, some of which may depend on each other, the Agent MUST provide the complete set of configuration options and their current values whenever a change is made. We would tradeoff some extra data being sent to the Client in order to help minimize the amount of state required to be managed by the Client. The Client would submit a new value, and receive back the full state of all configuration options that it can then replace it's current state with and render. So if changing a model means there are no thinking options, or a new option becomes available, or another value needs to change because the values of an option are different, the Agent will reflect this in its response by providing the entire new state (or an error if it is somehow an invalid selection).
+由于我们正在进入一个存在多个配置选项的世界，其中一些可能相互依赖，代理**必须**在更改时提供完整的配置选项及其当前值的集合。我们将用一些额外发送给客户端的数据进行权衡，以帮助最小化客户端需要管理的状态量。客户端将提交一个新值，并接收完整的配置选项状态，然后它可以替换其当前状态并渲染。所以如果更改模型意味着没有思维选项，或者新选项变得可用，或者另一个值需要更改（因为选项的值不同），代理将通过提供整个新状态来反映这一点（或者如果 somehow 是无效的选择则返回错误）。
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
-To start, we can implement this based on the [Session Modes](https://agentclientprotocol.com/protocol/session-modes) api.
+一开始，我们可以基于 [Session Modes](https://agentclientprotocol.com/protocol/session-modes) api 来实现。
 
-Something like an `InitializeResponse` that looks like:
+类似于这样的 `InitializeResponse`：
 
 ```json
 {
@@ -60,9 +60,9 @@ Something like an `InitializeResponse` that looks like:
     "sessionId": "sess_abc123def456",
     "configOptions": [
       {
-        "id": "mode", // this is the unique `key` for communication about which option is being used
-        "name": "Session Mode", // Human-readable label for the option
-        "description": "Optional description for the Client to display to the user."
+        "id": "mode", // 这是用于传达正在使用哪个选项的唯一 `key`
+        "name": "Session Mode", // 人类可读的选项标签
+        "description": "客户端向用户显示的可选描述。"
         "category": "mode",
         "type": "select",
         "currentValue": "ask",
@@ -70,12 +70,12 @@ Something like an `InitializeResponse` that looks like:
           {
             "value": "ask",
             "name": "Ask",
-            "description": "Request permission before making any changes"
+            "description": "在进行任何更改之前请求许可"
           },
           {
             "value": "code",
             "name": "Code",
-            "description": "Write and modify code with full tool access"
+            "description": "使用完整工具访问编写和修改代码"
           }
         ]
       },
@@ -89,12 +89,12 @@ Something like an `InitializeResponse` that looks like:
           {
             "value": "model-1",
             "name": "Model 1",
-            "description": "The fastest model"
+            "description": "最快的模型"
           },
           {
             "value": "model-2",
             "name": "Model 2",
-            "description": "The most powerful model"
+            "description": "最强大的模型"
           }
         ]
       }
@@ -103,24 +103,24 @@ Something like an `InitializeResponse` that looks like:
 }
 ```
 
-### Option category (optional)
+### 选项类别（可选）
 
-Each top-level config option MAY include an optional `category` field. This is intended to help Clients distinguish broadly common selectors and provide a consistent UX (for example, attaching keyboard shortcuts to the first option of a given category).
+每个顶级配置选项**可以**包含一个可选的 `category` 字段。这旨在帮助客户端广泛区分常见选择器并提供一致的 UX（例如，将键盘快捷键附加到给定类别的第一个选项）。
 
-In addition to `category`, Clients SHOULD use the ordering of the `configOptions` array as provided by the Agent as the primary way to establish priority and resolve ties. For example, if multiple options share the same `category`, a Client can prefer the first matching option in the list when assigning keyboard shortcuts or deciding which options to surface most prominently.
+除了 `category` 之外，客户端**应该**使用代理提供的 `configOptions` 数组的顺序作为建立优先级和解决平局的主要方式。例如，如果多个选项共享相同的 `category`，客户端可以在分配键盘快捷键或决定哪些选项最突出地显示时偏好列表中第一个匹配的选项。
 
-`category` is semantic metadata and MUST NOT be required for correctness. Clients MUST handle missing or unknown categories gracefully.
+`category` 是语义元数据，**不能**要求正确性。客户端必须优雅地处理缺失或未知的类别。
 
-Category names beginning with `_` are free for custom use. Category names that do not begin with `_` are reserved for the ACP spec.
+以 `_` 开头的类别名称可自由用于自定义使用。以 `_` 开头的类别名称保留给 ACP 规范。
 
-Proposed enum:
+建议的枚举：
 
-- `mode` - Session mode selector
-- `model` - Model selector
-- `thought_level` - Thought/reasoning level selector
-- Any string beginning with `_` - Custom category (e.g., `_my_custom_category`)
+- `mode` - 会话模式选择器
+- `model` - 模型选择器
+- `thought_level` - 思维/推理级别选择器
+- 任何以 `_` 开头的字符串 - 自定义类别（例如 `_my_custom_category`）
 
-When we introduce this, we could also allow for grouped options, in case there are logical sub-headers and groupings for the options in an individual selector.
+当我们引入这个时，我们还可以允许分组选项，以防单个选择器的选项有逻辑子标题和分组。
 
 ```json
 {
@@ -135,7 +135,7 @@ When we introduce this, we could also allow for grouped options, in case there a
         {
           "value": "model-1",
           "name": "Model 1",
-          "description": "The fastest model"
+          "description": "最快的模型"
         }
       ]
     },
@@ -145,7 +145,7 @@ When we introduce this, we could also allow for grouped options, in case there a
         {
           "value": "model-2",
           "name": "Model 2",
-          "description": "The most powerful model"
+          "description": "最强大的模型"
         }
       ]
     }
@@ -153,11 +153,11 @@ When we introduce this, we could also allow for grouped options, in case there a
 }
 ```
 
-We use a list of objects for all of these, to ensure consistent ordering of both the config options and the possible values across languages that may or may not preserve ordering.
+我们使用所有这些的对象列表，以确保配置选项和可能值在不同语言中的一致排序（无论是否保留排序）。
 
-For grouping options, it needs to be explored whether or not grouped and ungrouped options can be interspersed, or if we need to restrict to one mode or the other (likely the latter).
+对于分组选项，需要探索分组和未分组选项是否可以交错，或者是否需要限制为一种模式（可能是后者）。
 
-For updating the value from the client and agent, it would follow the same pattern as [session modes](https://agentclientprotocol.com/protocol/session-modes#from-the-client) but have an additional key.
+对于从客户端和代理更新值，它将遵循与 [session modes](https://agentclientprotocol.com/protocol/session-modes#from-the-client) 相同的模式，但有一个额外的 key。
 
 ```json
 {
@@ -172,7 +172,7 @@ For updating the value from the client and agent, it would follow the same patte
 }
 ```
 
-And the response to this request would return the full list of config options with current values.
+而对此请求的响应将返回带有当前值的完整配置选项列表。
 
 ```json
 {
@@ -199,7 +199,7 @@ And the response to this request would return the full list of config options wi
 }
 ```
 
-The notification would return the full list of config options with current values as well.
+通知也将返回带有当前值的完整配置选项列表。
 
 ```json
 {
@@ -230,36 +230,36 @@ The notification would return the full list of config options with current value
 }
 ```
 
-We would also likely move session modes to be `@deprecated` in favor of this approach. Until it is removed, we may want Agents to support both fields, and then the Client, if it uses the new config options, should only use the config options supplied and not the `modes` field to avoid duplication.
+我们可能还会将会话模式移动为在 `@deprecated` 中，以支持这种方法。在移除之前，我们可能希望代理支持两个字段，然后如果客户端使用新的配置选项，应该只使用提供的配置选项而不使用 `modes` 字段以避免重复。
 
-The config options would also take a `type` field to specify different forms of input for the Client to display. If a client receives an option it doesn't recognize, it should ignore it. Since the Agent is required to have a default value, it can gracefully degrade and ignore the option and the Agent should handle it regardless. The Client should also treat the list of options as prioritized by the Agent. So, if for some reason the Agent provides more options than the Client can reasonably display, the Client should show as many as possible, starting at the beginning of the list.
+配置选项还将采用一个 `type` 字段来指定客户端显示的不同输入形式。如果客户端收到它不识别的选项，它应该忽略它。由于代理需要有一个默认值，它可以优雅地忽略该选项，代理应该无论如何处理它。客户端还应该将选项列表视为由代理优先排序。因此，如果由于某种原因代理提供的选项多于客户端合理可以显示的选项，客户端应该显示尽可能多的选项，从列表开头开始。
 
-We will start with just supporting `select` for now, and expand to other types as needed.
+我们将开始只支持 `select`，并根据需要扩展到其他类型。
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-As noted, the Zed team already looked into and implemented experimental support for a model selector.
+如前所述，Zed 团队已经研究并实现了模型选择器的实验性支持。
 
-However, this has already diverged from how the Codex CLI is modeling their model selector as of last week, so it seems reasonable to, as per a core design principle of the protocol, only limit the Agent implementations where necessary for the Client to render a faithful UX. Maximizing flexibility for the Agent as they iterate on the best way to model new paradigms seems key here, and it is unclear whether the Client benefits from knowing which type of selector this is.
+然而，这已经与我们上周对 Codex CLI 建模其模型选择器的方式不同，因此似乎合理的是，根据协议的核心设计原则，仅在客户端需要呈现忠实 UX 时限制代理实现。最大化代理在迭代新范式的最佳方式时的灵活性似乎是关键，目前尚不清楚客户端是否从知道选择的是什么类型中受益。
 
-We originally discussed internally having a design closer to this proposal, however walked it back thinking it would be helpful for the Client to know what was being selected. However, as we've now dealt with multiple Agent implementations, it is unclear if this has actually helped the Client, and allowing for more flexibility seems desirable.
+我们在内部最初讨论过一个更接近这个提案的设计，但后来又放弃了，认为这会对客户端有所帮助。然而，正如我们现在与多个代理实现打交道的那样，目前尚不清楚这是否真的对客户端有所帮助，而允许更多灵活性似乎是可取的。
 
-### What about connection-level configuration options?
+### 连接级配置选项呢？
 
-This RFD is only concerned with session-level configuration, for which it seems reasonable to require that the Agent can select a default value at all times and not require input from the client before continuing.
+这个 RFD 只关心会话级配置，对于这些配置，似乎合理地要求代理可以始终选择一个默认值，并且在继续之前不需要客户端的输入。
 
-There seems to be another type of configuration option that is needed when first setting up an Agent (i.e. provider options, plugins, etc.) that are more persistent and may be required by an Agent prior to being able to create a session. These would need to be tackled somewhere closer to the initialization phase, or elsewhere and are out of scope for this RFD.
+在设置代理时似乎还需要另一种类型的配置选项（即提供程序选项、插件等），这些选项更持久，可能需要代理在能够创建会话之前就需要。这些需要在初始化阶段或附近的地方解决，超出这个 RFD 的范围。
 
-### What about multi-value selectors? or checkboxes? Or _insert favorite input option here_?
+### 多值选择器呢？或复选框？或者 _在此处插入您喜欢的输入选项_？
 
-This is a question we should discuss of how much complexity we want to introduce for the first version, and how we want to express this to via Client capabilities to allow for more option types in the future.
+这是我们应该讨论的问题，即对于第一个版本我们要引入多少复杂性，以及我们希望通过客户端功能如何以允许更多选项类型在未来表达这个。
 
-## Revision history
+## 修订历史
 
-- 2025-10-29: Initial draft
-- 2026-01-09: Add option categories
-- 2026-01-15: Allow for category extensions
+- 2025-10-29：初始草稿
+- 2026-01-09：添加选项类别
+- 2026-01-15：允许类别扩展

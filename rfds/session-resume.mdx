@@ -1,85 +1,70 @@
 ---
-title: "Resuming of existing sessions"
+title: "恢复现有会话"
 ---
 
-- Author(s): [@josevalim](https://github.com/josevalim)
-- Champion: [@benbrandt](https://github.com/benbrandt)
+- 作者：[@josevalim](https://github.com/josevalim)
+- 支持者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-We propose adding the ability to resume existing sessions. This is similar to "session/load",
-except it does not return previous messages.
+我们提议添加恢复现有会话的能力。这类似于 "session/load"，
+除了它不返回以前的消息。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-While the spec provides a "session/load" command, not all coding agents implement it.
-This means that, once you close your editor, browser, etc, you can't resume the conversation.
+虽然规范提供了 "session/load" 命令，但并非所有编码代理都实现了它。
+这意味着，一旦您关闭编辑器、浏览器等，您就无法恢复对话。
 
-This is particularly a problem for agents that do not directly implement ACP and the
-functionality is implemented via a wrapper. In such cases, they may provide the ability
-to resume (without history), which we would like to hook into. Not only that, resuming
-could be used as a mechanism for proxies and adapter libraries to emulate "session/load".
+对于不直接实现 ACP 的代理来说，这尤其是一个问题，
+而该功能是通过包装器实现的。在这种情况下，它们可能提供恢复（不带历史记录）的能力，
+我们希望能够挂接到这个功能。不仅如此，恢复可以用作代理和适配器库来模拟 "session/load" 的机制。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-Add a "session/resume" command and a capability `{ session: { resume: {} }`.
+添加 "session/resume" 命令和功能 `{ session: { resume: {} }`。
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-We will be able to resume existing conversations, providing a better user experience.
+我们将能够恢复现有对话，提供更好的用户体验。
 
-Not only that, if an agent does not implement "session/load" but it does implement
-"session/resume", it is now possible to implement a proxy/adapter that intercepts
-the agents messages and writes them to disk. Now when the client issues a
-"session/load", the proxy/adapter converts it to a "session/resume", and then returns
-the stored messages.
+不仅如此，如果代理没有实现 "session/load" 但实现了
+"session/resume"，现在可以实现一个拦截代理消息的代理/适配器并将其写入磁盘。现在当客户端发出 "session/load" 时，代理/适配器将其转换为 "session/resume"，然后返回存储的消息。
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-### Should we introduce a new operation (session/resume) or add an option to (session/load)?
+### 我们应该引入新操作（session/resume）还是添加选项到（session/load）？
 
-A separate method provides a few benefits:
+一个单独的方法提供了一些好处：
 
-- for clients that for whatever reason don't want the history, they can just resume
+- 对于无论如何不想要历史记录的客户端，它们可以只恢复
+- 对于只能提供恢复的代理，其上的代理可以提供基于其上的负载，但代理仍然清楚地知道它支持什么
+- 对于同时支持两者的代理，使用相同的恢复功能应该是微不足道的，它们只是重放事件或不重放
 
-- for agents that can only supply resume, a proxy on top could provide load on top of it,
-  but the agent is still clear on what it supports
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-- for agents who support both, it should be trivial to use the same resume functionality,
-  they just either replay events or do not
+最大的问题是同时支持 "session/load" 和 "session/resume" 是否有意义。
 
-### What alternative approaches did you consider, and why did you settle on this one?
+当我们通过 ACP 启动一个新会话时，我们会引入自定义 MCP 工具和配置。
+这意味着，虽然我们可以使用 "session/load" 来加载我们自己的聊天记录，但加载
+第三方聊天可能会导致有缺陷的用户体验，因为我们的工具将不可用。并且根据 ACP 实现，
+甚至可能不会尊重功能（因为加载第三方会话不会在其历史记录中包含我们的功能，误导代理）。
 
-The biggest question is if it makes sense to support both "session/load" and
-"session/resume".
+因此，如果我们假设 "session/load" 是用于加载由客户端自己开始的会话，那么 "session/resume" 实际上是 "session/load" 的一个子集，与存储机制解耦。如果代理实现了 "session/load"，那么它可以直接使用，但如果它没有实现，代理或适配器可以在 "session/resume" 之上提供合理的回退。这论证了 "session/resume" 是 "session/load" 所构建的基本原语。
 
-When we start a new session over ACP, we introduce custom MCP tools and configuration.
-This means that, while we could use "session/load" to load our own chats, loading
-third-party chats would likely lead to a flawed user experience, as our tools would
-not be available. And depending on the ACP implementation, not even the capabilities
-would be respected (as loading a third-party session would not include our capabilities
-in its history, misleading the agent).
+## 修订历史
 
-Therefore, if we assume "session/load" is for loading conversations started by the client
-itself, "session/resume" is effectively a subset of "session/load", decoupled from storage
-mechanics. If an agent implements "session/load", then it can be used directly, but if it
-doesn't, a proxy or adapter can provide a reasonable fallback on top of "session/resume".
-This argues "session/resume" is the basic primitive which "session/load" builds on top of.
-
-## Revision history
-
-- 2025-11-24: Update FAQ to mention session/resume vs session/load
+- 2025-11-24：更新 FAQ 以提及 session/resume 与 session/load

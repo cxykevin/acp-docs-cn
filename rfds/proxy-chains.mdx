@@ -1,63 +1,63 @@
 ---
-title: "Agent Extensions via ACP Proxies"
+title: "通过 ACP 代理的代理扩展"
 ---
 
-Author(s): [nikomatsakis](https://github.com/nikomatsakis)
+作者：[nikomatsakis](https://github.com/nikomatsakis)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-Enable a universal agent extension mechanism via ACP proxies, components that sit between a client and an agent. Proxies can intercept and transform messages, enabling composable architectures where techniques like context injection, tool coordination, and response filtering can be extracted into reusable components.
+通过 ACP 代理启用通用代理扩展机制，代理是坐在客户端和代理之间的组件。代理可以拦截和转换消息，实现可组合的架构，其中上下文注入、工具协调和响应过滤等技术可以提取为可重用的组件。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-The AI agent ecosystem has developed many extension mechanisms: AGENTS.md files, Claude Code plugins, rules files, hooks, MCP servers, etc. Of these, only MCP servers have achieved real standardization across the ecosystem.
+AI 代理生态系统已经开发了许多扩展机制：AGENTS.md 文件、Claude Code 插件、规则文件、钩子、MCP 服务器等。其中，只有 MCP 服务器在生态系统中实现了真正的标准化。
 
-However, MCP servers are fundamentally limited because they sit "behind" the agent. They can provide tools and respond to function calls, but they cannot:
+然而，MCP 服务器从根本上受到限制，因为它们坐在代理"后面"。它们可以提供工具并响应函数调用，但不能：
 
-- **Inject or modify prompts** before they reach the agent
-- **Add global context** that persists across conversations
-- **Transform responses** before they reach the user
-- **Coordinate between multiple agents** or manage conversation flow
+- 在提示到达代理之前**注入或修改提示**
+- **添加跨对话持久化的全局上下文**
+- **在响应到达用户之前转换响应**
+- **协调多个代理**或管理对话流程
 
-As a result, valuable techniques like context management and response processing remain locked within individual agent implementations, with no way to extract and reuse them across different agents.
+因此，有价值的技术如上下文管理和响应处理仍然锁定在各个代理实现中，无法跨不同代理提取和重用。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-We propose implementing _agent extensions_ via ACP _proxies_, a new kind of component that sits between the client and the agent, forwarding (and potentially altering or introducing) messages. Because proxies can do anything a client could do, they serve as a universal extension mechanism that can subsume AGENTS.md, hooks, MCP servers, etc.
+我们提议通过 ACP **代理**实现**代理扩展**，这是一种新的组件类型，坐在客户端和代理之间，转发（并可能改变或引入）消息。因为代理可以做客户端能做的任何事情，它们作为通用扩展机制，可以取代 AGENTS.md、钩子、MCP 服务器等。
 
-Proxies are limited to the customizations exposed by ACP itself, so they would benefit from future ACP extensions like mechanisms to customize system prompts. However, they can already handle the majority of common extension use cases through message interception and transformation.
+代理仅限于 ACP 本身暴露的自定义，因此它们将受益于未来的 ACP 扩展，如自定义系统提示的机制。然而，它们已经可以通过消息拦截和转换来处理大多数常见的扩展用例。
 
-### Proxying in theory
+### 理论上的代理
 
-Conceptually, proxies work like a chain where messages flow through each component:
+从概念上讲，代理工作起来像一个链，消息流经每个组件：
 
 ```mermaid
 flowchart LR
-    Client[ACP Client] -->|messages| P1[Context Proxy]
-    P1 -->|enhanced| P2[Tool Filter Proxy]
-    P2 -->|filtered| A[Base Agent]
-    A -->|responses| P2
-    P2 -->|processed| P1
-    P1 -->|final| Client
+    Client[ACP 客户端] -->|消息| P1[上下文代理]
+    P1 -->|增强| P2[工具过滤代理]
+    P2 -->|过滤| A[基础代理]
+    A -->|响应| P2
+    P2 -->|处理| P1
+    P1 -->|最终| Client
 ```
 
-### Proxying in practice: the role of the conductor
+### 实践中的代理：conductor 的角色
 
-To allow for proxy isolation, our design does not have proxies communicate directly with their successor in the chain. Instead, there is a central _conductor_ component that orchestrates messages moving between components.
+为了允许代理隔离，我们的设计不让代理直接与链中的后继通信。相反，有一个中央 **conductor** 组件来协调组件之间的消息移动。
 
 ```mermaid
 flowchart TB
-    Client[Client]
+    Client[客户端]
     C[Conductor]
-    P1[Context Proxy]
-    P2[Tool Filter Proxy]
-    A[Agent]
+    P1[上下文代理]
+    P2[工具过滤代理]
+    A[代理]
 
     Client <-->|ACP| C
     C <-->|ACP| P1
@@ -65,63 +65,63 @@ flowchart TB
     C <-->|ACP| A
 ```
 
-We add one ACP method for proxy communication:
+我们为代理通信添加了一个 ACP 方法：
 
-- **`proxy/successor`**: Used bidirectionally - proxies send it to forward messages to their successor, and the conductor sends it to deliver messages from the successor back to the proxy
+- **`proxy/successor`**：双向使用——代理发送它以将消息转发给其后继，conductor 发送它以将来自后继的消息传递给代理
 
-Here's how a single message flows through the system:
+以下是单个消息如何流经系统：
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Conductor
-    participant P1 as Context Proxy
-    participant P2 as Tool Filter Proxy
+    participant P1 as 上下文代理
+    participant P2 as 工具过滤代理
     participant Agent
 
-    Client->>Conductor: prompt request
-    Conductor->>P1: prompt request
-    P1->>Conductor: proxy/successor (enhanced prompt)
-    Conductor->>P2: enhanced prompt
-    P2->>Conductor: proxy/successor (filtered prompt)
-    Conductor->>Agent: filtered prompt
-    Agent-->>Conductor: response
-    Conductor-->>P2: response
-    P2-->>Conductor: processed response
-    Conductor-->>P1: processed response
-    P1-->>Conductor: final response
-    Conductor-->>Client: final response
+    Client->>Conductor: 提示请求
+    Conductor->>P1: 提示请求
+    P1->>Conductor: proxy/successor（增强的提示）
+    Conductor->>P2: 增强的提示
+    P2->>Conductor: proxy/successor（过滤的提示）
+    Conductor->>Agent: 过滤的提示
+    Agent-->>Conductor: 响应
+    Conductor-->>P2: 响应
+    P2-->>Conductor: 处理的响应
+    Conductor-->>P1: 处理的响应
+    P1-->>Conductor: 最终响应
+    Conductor-->>Client: 最终响应
 ```
 
-## Shiny future
+## 美好的未来
 
-> How will things play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-### User experience and editor integration
+### 用户体验和编辑器集成
 
-We expect editors to expose the ability to install proxies in the same way they currently support adding MCP servers - in fact, the distinction probably doesn't matter to users. Both are "extensions" that add capabilities to their AI workflow.
+我们期望编辑器以与当前支持添加 MCP 服务器相同的方式暴露安装代理的能力——实际上，对用户来说这种区别可能并不重要。两者都是"扩展"，为他们的 AI 工作流添加功能。
 
-When proxies are installed, editors would not start the agent directly, but instead invoke the conductor with the configured proxy chain. From the user's perspective, they're just getting enhanced agent capabilities - the proxy chain architecture remains transparent.
+当安装代理时，编辑器不会直接启动代理，而是使用配置的代理链调用 conductor。从用户的角度来看，他们只是获得了增强的代理能力——代理链架构保持透明。
 
-### Language-specific proxy ecosystems
+### 特定语言的代理生态系统
 
-The monolithic nature of agent development has meant that most of the "action" happens within agents. We wish to invert this, with agents trending towards simple agentic loops, and the creativity being pushed outwards into the broader ecosystem.
+代理开发的整体性质意味着大部分"动作"发生在代理内部。我们希望扭转这一趋势，代理趋向于简单的代理循环，创意被推向更广泛的生态系统。
 
-The Symposium project is one example exploring this concept, with a focus on Rust. The idea is to give Rust users an automatic set of extensions based on the dependencies they are using. These extensions would be packaged up as SACP proxies using WebAssembly for portability and sandboxing.
+Symposium 项目是探索这个概念的一个例子，重点关注 Rust。这个想法是为 Rust 用户提供基于他们正在使用的依赖项的自动扩展集。这些扩展将被打包为使用 WebAssembly 以实现可移植性和沙盒化的 SACP 代理。
 
-Symposium aims to become the standard "Rust ACP experience" by providing both core Rust tooling and a framework for Rust libraries to contribute their own proxy components.
+Symposium 旨在通过同时提供核心 Rust 工具和 Rust 库贡献自己的代理组件的框架，成为标准的"Rust ACP 体验"。
 
 ```mermaid
 flowchart LR
-    Client[Client]
+    Client[客户端]
     Conductor[Conductor]
-    Agent[Agent]
+    Agent[代理]
 
-    subgraph Symposium["symposium-acp proxy"]
-        RustTools[Rust Language Tools]
-        CrateA[tokio-acp proxy]
-        CrateB[serde-acp proxy]
-        CrateC[bevy-acp proxy]
+    subgraph Symposium["symposium-acp 代理"]
+        RustTools[Rust 语言工具]
+        CrateA[tokio-acp 代理]
+        CrateB[serde-acp 代理]
+        CrateC[bevy-acp 代理]
 
         RustTools --> CrateA
         CrateA --> CrateB
@@ -133,73 +133,73 @@ flowchart LR
     Symposium --> Agent
 ```
 
-### Standardized IDE capabilities
+### 标准化的 IDE 能力
 
-Proxy infrastructure could also enable editors to expose standardized IDE capabilities (diagnostics, file system access, terminal APIs) to agents via MCP servers provided by proxies. This keeps the core ACP protocol focused on agent communication while allowing rich IDE integration through the proxy layer.
+代理基础设施还可以使编辑器通过代理提供的 MCP 服务器向代理公开标准化的 IDE 功能（诊断、文件系统访问、终端 API）。这使核心 ACP 协议专注于代理通信，同时通过代理层允许丰富的 IDE 集成。
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
-### Component roles
+### 组件角色
 
-Each ACP proxy chain forms a sequence of components:
+每个 ACP 代理链形成一系列组件：
 
 ```mermaid
 flowchart LR
     Client --> Proxy0 --> Proxy1 --> ... --> ProxyN --> Agent
 ```
 
-The **client** and **agent** are _terminal_ roles - the client has only a successor (no predecessor), and the agent has only a predecessor (no successor). Proxies are _non-terminal_ - they have both a predecessor and a successor, forwarding messages between them.
+**客户端**和**代理**是**终端**角色——客户端只有一个后继（没有前驱），代理只有一个前驱（没有后继）。代理是**非终端**的——它们既有前驱也有后继，在它们之间转发消息。
 
-The **conductor** is a special component that orchestrates proxy chains. It spawns and manages proxy components, routes messages between them, and handles initialization. From the client's perspective, the conductor appears to be an ordinary agent:
+**conductor** 是一个特殊的组件，用于协调代理链。它生成和管理代理组件，在它们之间路由消息，并处理初始化。从客户端的角度来看，conductor 看起来像一个普通的代理：
 
 ```mermaid
 flowchart LR
     Client -->|ACP| Conductor
 
-    subgraph Managed["Managed by Conductor"]
+    subgraph Managed["由 Conductor 管理"]
         Proxy0 --> Proxy1 --> ... --> Agent
     end
 
-    Conductor -.->|spawns & routes| Managed
+    Conductor -.->|生成和路由| Managed
 ```
 
-We provide a canonical conductor implementation in Rust (`sacp-conductor`). Most editors would use this conductor directly to host proxies and agents, though they could also reimplement conductor functionality if needed.
+我们在 Rust 中提供了一个规范的 conductor 实现（`sacp-conductor`）。大多数编辑器会直接使用这个 conductor 来托管代理和代理，但它们也可以在需要时重新实现 conductor 功能。
 
-ACP defines client and agent as superroles, each with two specializations:
+ACP 将客户端和代理定义为超角色，每个都有两个专门化：
 
 ```mermaid
 classDiagram
     class Client {
         <<abstract>>
-        +sends prompts
+        +发送提示
     }
 
     class Agent {
         <<abstract>>
-        +responds to prompts
+        +响应提示
     }
 
     class TerminalClient {
-        +receives direction from user
-        +connects to terminal agent
+        +接收用户的指导
+        +连接到终端代理
     }
 
     class Conductor {
-        +manages proxy chain
-        +sends successor messages
+        +管理代理链
+        +发送后继消息
     }
 
     class TerminalAgent {
-        +embodies the LLM
-        +final destination
-        +no successor
+        +体现 LLM
+        +最终目的地
+        +无后继
     }
 
     class Proxy {
-        +forwards to successor
-        +sends successor messages
+        +转发到后继
+        +发送后继消息
     }
 
     Client <|-- TerminalClient
@@ -208,119 +208,119 @@ classDiagram
     Agent <|-- Proxy
 ```
 
-**Example Architecture:**
+**示例架构：**
 
 ```mermaid
 flowchart TB
-    TC[Terminal Client]
+    TC[终端客户端]
     C[Conductor]
-    P1[Context Proxy]
-    P2[Tool Filter Proxy]
-    TA[Terminal Agent]
+    P1[上下文代理]
+    P2[工具过滤代理]
+    TA[终端代理]
 
-    TC -->|terminal client| C
-    C -->|terminal agent| TC
+    TC -->|终端客户端| C
+    C -->|终端代理| TC
     C -->|conductor| P1
-    P1 -->|proxy| C
+    P1 -->|代理| C
     C -->|conductor| P2
-    P2 -->|proxy| C
-    C -->|terminal client| TA
-    TA -->|terminal agent| C
+    P2 -->|代理| C
+    C -->|终端客户端| TA
+    TA -->|终端代理| C
 ```
 
-### Proxy initialization protocol
+### 代理初始化协议
 
-Components discover their role from the initialization method they receive:
+组件从它们收到的初始化方法中发现它们的角色：
 
-- **Proxies** receive `proxy/initialize` - they have a successor and should forward messages
-- **Agents** receive `initialize` - they are terminal (no successor) and process messages directly
+- **代理**收到 `proxy/initialize`——它们有后继，应该转发消息
+- **代理**收到 `initialize`——它们是终端的（没有后继），直接处理消息
 
-The `proxy/initialize` request has the same parameters as `initialize` and expects a standard `InitializeResponse`. The only difference is the method name, which signals to the component that it should operate as a proxy.
+`proxy/initialize` 请求具有与 `initialize` 相同的参数，并期望标准的 `InitializeResponse`。唯一的区别是方法名称，它向组件发出信号，表明它应该作为代理运行。
 
-**Conductor behavior:**
+**Conductor 行为：**
 
-- The conductor MUST send `proxy/initialize` to all proxy components
-- The conductor MUST send `initialize` to the final agent component (if any)
-- When a proxy forwards an `initialize` via `proxy/successor`, the conductor determines whether the successor is another proxy or the agent, and sends `proxy/initialize` or `initialize` respectively.
+- conductor 必须向所有代理组件发送 `proxy/initialize`
+- conductor 必须向最终的代理组件发送 `initialize`（如果有）
+- 当代理通过 `proxy/successor` 转发 `initialize` 时，conductor 确定后继是另一个代理还是代理，并分别发送 `proxy/initialize` 或 `initialize`
 
-**Proxy behavior:**
+**代理行为：**
 
-- A proxy that receives `proxy/initialize` knows it has a successor
-- The proxy SHOULD forward requests it does not understand
-- The proxy SHOULD preserve metadata fields when forwarding messages
+- 收到 `proxy/initialize` 的代理知道它有后继
+- 代理应该转发它不理解的请求
+- 代理在转发消息时应该保留元数据字段
 
-Note: A conductor can be configured to run in either terminal mode (expecting `initialize`) or proxy mode (expecting `proxy/initialize`), enabling nested proxy chains.
+注意：可以配置 conductor 以终端模式（期望 `initialize`）或代理模式（期望 `proxy/initialize`）运行，从而实现嵌套代理链。
 
-### MCP-over-ACP support
+### MCP-over-ACP 支持
 
-Proxies that provide MCP servers use the [MCP-over-ACP transport](./mcp-over-acp) mechanism. The conductor always advertises `mcpCapabilities.acp: true` to proxies and handles bridging for agents that don't support native ACP transport.
+提供 MCP 服务器的代理使用 [MCP-over-ACP 传输](./mcp-over-acp) 机制。conductor 始终向代理广告 `mcpCapabilities.acp: true`，并处理不支持原生 ACP 传输的代理的桥接。
 
-All proxies MUST respond to `proxy/initialize` with the MCP-over-ACP capability enabled. When the conductor sends `proxy/initialize`, proxies should be prepared to handle `mcp/connect`, `mcp/message`, and `mcp/disconnect` messages for any MCP servers they provide.
+所有代理必须响应 `proxy/initialize` 并启用 MCP-over-ACP 功能。当 conductor 发送 `proxy/initialize` 时，代理应该准备处理它们提供的任何 MCP 服务器的 `mcp/connect`、`mcp/message` 和 `mcp/disconnect` 消息。
 
-### Message reference
+### 消息参考
 
-**Initialization:**
+**初始化：**
 
 ```json
-// Conductor initializes a proxy (proxy knows it has a successor)
+// Conductor 初始化一个代理（代理知道它有后继）
 {"method": "proxy/initialize", "params": <INITIALIZE_REQUEST_PARAMS>}
 
-// Conductor initializes the agent (standard ACP)
+// Conductor 初始化代理（标准 ACP）
 {"method": "initialize", "params": <INITIALIZE_REQUEST_PARAMS>}
 ```
 
-Both methods use the same parameters as the standard ACP `InitializeRequest` and expect a standard `InitializeResponse`.
+两种方法都使用与标准 ACP `InitializeRequest` 相同的参数，并期望标准的 `InitializeResponse`。
 
-**Proxy messages:**
+**代理消息：**
 
 ```json
-// Proxy sends message to successor, or conductor delivers message from successor
-// (same method, direction determined by sender)
+// 代理发送消息给后继，或 conductor 发送来自后继的消息
+//（相同的方法，方向由发送者决定）
 {
   "method": "proxy/successor",
   "params": {
     "method": "<INNER_METHOD>",
     "params": <INNER_PARAMS>,
-    "meta": { ... }            // optional metadata
+    "meta": { ... }            // 可选元数据
   }
 }
 ```
 
-The inner message fields (`method`, `params`) are flattened into the params object. Whether the wrapped message is a request or notification is determined by the presence of an `id` field in the outer JSON-RPC envelope, following JSON-RPC conventions.
+内部消息字段（`method`、`params`）被展平到 params 对象中。包装的消息是请求还是通知由外部 JSON-RPC 信封中 `id` 字段的存在决定，遵循 JSON-RPC 约定。
 
-### Examples (non-normative)
+### 示例（非规范）
 
-The following sequence diagrams illustrate common proxy chain scenarios for implementers.
+以下序列图说明了常见的代理链场景以供实现者参考。
 
-#### Initialization of a 4-component proxy chain
+#### 4 组件代理链的初始化
 
-This shows the initialization flow for: Terminal Client → Conductor → Context Proxy → Tool Filter Proxy → Terminal Agent
+这显示了以下内容的初始化流程：终端客户端 → Conductor → 上下文代理 → 工具过滤代理 → 终端代理
 
 ```mermaid
 sequenceDiagram
-    participant TC as Terminal Client
+    participant TC as 终端客户端
     participant C as Conductor
-    participant P1 as Context Proxy
-    participant P2 as Tool Filter Proxy
-    participant TA as Terminal Agent
+    participant P1 as 上下文代理
+    participant P2 as 工具过滤代理
+    participant TA as 终端代理
 
-    Note over TC,TA: === Initialization Phase ===
+    Note over TC,TA: === 初始化阶段 ===
 
     TC->>C: initialize
 
-    Note over C: Conductor spawns proxy components
+    Note over C: Conductor 生成代理组件
     C->>P1: proxy/initialize
 
-    Note over P1: Proxy forwards to successor
+    Note over P1: 代理转发给后继
     P1->>C: proxy/successor (initialize)
 
-    Note over C: Conductor sends proxy/initialize to next proxy
+    Note over C: Conductor 向下一个代理发送 proxy/initialize
     C->>P2: proxy/initialize
 
-    Note over P2: Proxy forwards to successor
+    Note over P2: 代理转发给后继
     P2->>C: proxy/successor (initialize)
 
-    Note over C: Conductor sends initialize to final agent
+    Note over C: Conductor 向最终代理发送 initialize
     C->>TA: initialize
 
     TA-->>C: InitializeResponse (mcpCapabilities.acp: true/false)
@@ -331,203 +331,203 @@ sequenceDiagram
 
     P1-->>C: InitializeResponse
 
-    Note over C: Conductor acts as terminal agent to client
+    Note over C: Conductor 作为终端代理对客户端行事
     C-->>TC: InitializeResponse
 
-    Note over TC,TA: Proxy chain initialized and ready
+    Note over TC,TA: 代理链已初始化并准备就绪
 ```
 
-#### Context-providing proxy with session notifications
+#### 提供上下文的代理与会话通知
 
-This example shows how a proxy can handle initialization and forward session notifications. Sparkle (a collaborative AI framework) runs an embodiment sequence during session creation.
+这个示例显示了一个代理如何处理初始化并转发会话通知。Sparkle（一个协作 AI 框架）在会话创建期间运行一个化身序列。
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Sparkle as Sparkle Proxy
+    participant Sparkle as Sparkle 代理
     participant Agent
 
-    Note over Client: Client creates new session
+    Note over Client: 客户端创建新会话
     Client->>Sparkle: session/new
 
-    Note over Sparkle: Adds Sparkle MCP server
-    Sparkle->>Agent: session/new + sparkle tools
-    Agent-->>Sparkle: session created (sessionId: S1)
-    Sparkle-->>Client: session/new response (sessionId: S1)
+    Note over Sparkle: 添加 Sparkle MCP 服务器
+    Sparkle->>Agent: session/new + sparkle 工具
+    Agent-->>Sparkle: 会话已创建（sessionId: S1）
+    Sparkle-->>Client: session/new 响应（sessionId: S1）
 
-    Note over Client: Client sends first prompt (during embodiment)
-    Client->>Sparkle: prompt ('Hello, can you help me?')
+    Note over Client: 客户端发送第一个提示（化身期间）
+    Client->>Sparkle: prompt（'你好，你能帮助我吗？'）
     activate Sparkle
 
-    Note over Sparkle: Delays client prompt, runs embodiment first
-    Sparkle->>Agent: prompt ('you are sparkle...')
+    Note over Sparkle: 延迟客户端提示，先运行化身
+    Sparkle->>Agent: prompt（'你是 sparkle...'）
 
-    Note over Agent: Processes embodiment, sends notifications
-    Agent->>Sparkle: session/update (S1: thinking...)
-    Sparkle->>Client: session/update (S1: thinking...)
+    Note over Agent: 处理化身，发送通知
+    Agent->>Sparkle: session/update (S1: 思考中...)
+    Sparkle->>Client: session/update (S1: 思考中...)
 
-    Agent->>Sparkle: session/update (S1: embodiment complete)
-    Sparkle->>Client: session/update (S1: embodiment complete)
+    Agent->>Sparkle: session/update (S1: 化身完成)
+    Sparkle->>Client: session/update (S1: 化身完成)
 
-    Agent-->>Sparkle: embodiment response
-    Note over Sparkle: Discards embodiment response, now processes delayed prompt
+    Agent-->>Sparkle: 化身响应
+    Note over Sparkle: 丢弃化身响应，现在处理延迟的提示
 
-    Sparkle->>Agent: prompt ('Hello, can you help me?')
+    Sparkle->>Agent: prompt（'你好，你能帮助我吗？'）
     deactivate Sparkle
-    Agent-->>Sparkle: response to client
-    Sparkle-->>Client: response to client
+    Agent-->>Sparkle: 对客户端的响应
+    Sparkle-->>Client: 对客户端的响应
 
-    Note over Client,Agent: Session ready with Sparkle patterns active
+    Note over Client,Agent: 会话已准备就绪，Sparkle 模式处于活动状态
 ```
 
-This demonstrates how proxies can run initialization sequences during session creation while transparently forwarding all session notifications back to the client.
+这演示了代理如何在会话创建期间运行初始化序列，同时透明地将所有会话通知转发回客户端。
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-### Why use a separate `proxy/initialize` method instead of a capability?
+### 为什么使用单独的 `proxy/initialize` 方法而不是功能？
 
-Earlier designs used a `"proxy": true` capability in the `InitializeRequest` and required proxies to echo it back in the response. This felt awkward because it wasn't really a capability negotiation - it was more of a "you must operate as a proxy" directive.
+早期设计使用 `InitializeRequest` 中的 `"proxy": true` 功能，并要求代理在响应中回显它。这感觉有些笨拙，因为它不是真正的功能协商——它更像是"你必须作为代理运行"的指令。
 
-Using a distinct method makes the contract clearer: if you receive `proxy/initialize`, you're a proxy with a successor; if you receive `initialize`, you're the terminal agent. There's no capability dance, no risk of misconfiguration, and components know their role immediately from the method name.
+使用不同的方法使契约更清晰：如果你收到 `proxy/initialize`，你就是一个有后继的代理；如果你收到 `initialize`，你就是终端代理。没有功能舞蹈，没有配置错误的风险，组件从方法名称立即知道它们的角色。
 
-### How do proxies subsume existing agent extension mechanisms?
+### 代理如何取代现有的代理扩展机制？
 
-Because proxies sit between the client and agent, they can replicate the functionality of existing extension mechanisms:
+因为代理坐在客户端和代理之间，它们可以复制现有扩展机制的功能：
 
-- **AGENTS.md files**: Proxies can inject context and instructions into prompts before they reach the agent
-- **Claude Code plugins/skills**: Proxies can add contextual data for available skills and provide MCP resources with detailed skill instructions that are provided on-demand when requested by the agent
-- **MCP servers**: Proxies can provide tools via [MCP-over-ACP](./mcp-over-acp) and handle tool callbacks
-- **Subagents**: Proxies can create "subagents" by initiating new sessions and coordinating between multiple agent instances
-- **Hooks and steering files**: Proxies can modify conversation flow by intercepting requests and responses
-- **System prompt customization**: Proxies can switch between predefined session modes or prepend system messages to prompts
+- **AGENTS.md 文件**：代理可以在提示到达代理之前将上下文和指令注入提示
+- **Claude Code 插件/技能**：代理可以添加可用技能的上下文数据，并提供带有详细技能指令的 MCP 资源，这些指令在代理请求时按需提供
+- **MCP 服务器**：代理可以通过 [MCP-over-ACP](./mcp-over-acp) 提供工具并处理工具回调
+- **子代理**：代理可以通过启动新会话并协调多个代理实例来创建"子代理"
+- **钩子和转向文件**：代理可以通过拦截请求和响应来修改对话流程
+- **系统提示自定义**：代理可以在提示前预先添加消息或切换预定义的会话模式
 
-The key advantage is that proxy-based extensions work with any ACP-compatible agent without requiring agent-specific integration or modification.
+关键优势在于基于代理的扩展可以与任何 ACP 兼容的代理一起工作，而不需要特定于代理的集成或修改。
 
-### How do proxies work with MCP servers?
+### 代理如何与 MCP 服务器一起工作？
 
-Proxies can provide MCP servers via [MCP-over-ACP transport](./mcp-over-acp), enabling a single proxy to add context, provide tools, and handle callbacks with full awareness of the conversation state.
+代理可以通过 [MCP-over-ACP 传输](./mcp-over-acp) 提供 MCP 服务器，使单个代理能够添加上下文、提供工具并在完全了解对话状态的情况下处理回调。
 
-The conductor always advertises `mcpCapabilities.acp: true` to proxies, regardless of whether the downstream agent supports it natively. When the agent doesn't support ACP transport, the conductor handles bridging transparently - spawning stdio shims or HTTP servers that the agent connects to normally, then relaying messages to/from the proxy's ACP channel.
+conductor 始终向代理广告 `mcpCapabilities.acp: true`，无论下游代理是否原生支持。当代理不支持 ACP 传输时，conductor 透明地处理桥接——生成代理正常连接的 stdio 垫片或 HTTP 服务器，然后中继消息到/from 代理的 ACP 通道。
 
-This means proxy authors don't need to worry about agent compatibility - they implement MCP-over-ACP, and the conductor handles the rest.
+这意味着代理作者不需要担心代理兼容性——他们实现 MCP-over-ACP，conductor 处理其余部分。
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant P1 as Context Proxy
-    participant P2 as Filter Proxy
+    participant P1 as 上下文代理
+    participant P2 as 过滤代理
     participant Agent
 
-    Note over Client: User asks about project structure
-    Client->>P1: prompt request
+    Note over Client: 用户询问项目结构
+    Client->>P1: 提示请求
 
-    Note over P1: Analyzes project, adds context + filesystem MCP server
-    P1->>P2: enhanced prompt + filesystem MCP server
+    Note over P1: 分析项目，添加上下文 + 文件系统 MCP 服务器
+    P1->>P2: 增强的提示 + 文件系统 MCP 服务器
 
-    Note over P2: Forwards enhanced prompt
-    P2->>Agent: prompt with context + tools available
+    Note over P2: 转发增强的提示
+    P2->>Agent: 带有上下文 + 工具的提示
 
-    Note over Agent: Decides to explore project structure
-    Agent->>P2: mcp/message (list files)
+    Note over Agent: 决定探索项目结构
+    Agent->>P2: mcp/message（列出文件）
 
-    Note over P2: Forwards tool call back to Context Proxy
-    P2->>P1: mcp/message (list files)
+    Note over P2: 将工具调用转发回上下文代理
+    P2->>P1: mcp/message（列出文件）
 
-    Note over P1: Handles tool call with full project context
-    P1-->>P2: file listing with relevant details
-    P2-->>Agent: file listing with relevant details
+    Note over P1: 使用完整的项目上下文处理工具调用
+    P1-->>P2: 带有相关细节的文件列表
+    P2-->>Agent: 带有相关细节的文件列表
 
-    Agent-->>P2: response using both context and tool results
-    P2-->>P1: response (potentially filtered)
-    P1-->>Client: final response
+    Agent-->>P2: 使用上下文和工具结果的响应
+    P2-->>P1: 响应（可能被过滤）
+    P1-->>Client: 最终响应
 ```
 
-### Are there any limitations to what proxies can do?
+### 代理有什么限制吗？
 
-Yes, proxies are limited to what is available through the ACP protocol itself. They can intercept and transform any ACP message, but they cannot access capabilities that ACP doesn't expose.
+是的，代理仅限于 ACP 协议本身可用的内容。它们可以拦截和转换任何 ACP 消息，但它们无法访问 ACP 不暴露的功能。
 
-For example, proxies cannot directly modify an agent's system prompt or context window - they can only switch between predefined session modes (which may affect system prompts) or prepend additional messages to prompts. Similarly, proxies cannot access internal agent state, model parameters, or other implementation details that aren't exposed through ACP messages.
+例如，代理无法直接修改代理的系统提示或上下文窗口——它们只能切换预定义的会话模式（可能影响系统提示）或预先将额外消息添加到提示。同样，代理无法访问内部代理状态、模型参数或其他未通过 ACP 消息暴露的实现细节。
 
-This is actually a feature - it ensures that proxy-based extensions remain portable across different agent implementations and don't rely on agent-specific internals.
+这实际上是一个功能——它确保基于代理的扩展在不同代理实现之间保持可移植，并且不依赖于代理特定的内部结构。
 
-### Why not just cascade ACP commands without protocol changes?
+### 为什么不在没有协议更改的情况下简单地级联 ACP 命令？
 
-One alternative is to make proxies be ordinary agents that internally create and manage their successors. This works (HTTP proxies operate this way) but requires each proxy to understand the full chain and know how to start its successors.
+一种替代方案是让代理成为普通代理，内部创建和管理其后继。这可以工作（HTTP 代理以这种方式操作），但需要每个代理理解完整链并知道如何启动其后继。
 
-This couples proxies to transport mechanisms, process management, and chain configuration. Changing transports, reordering the chain, or inserting a new proxy requires modifying predecessor configurations.
+这将代理耦合到传输机制、进程管理和链配置。更改传输、重新排序链或插入新代理需要修改前驱配置。
 
-The conductor design decouples proxies from their successors. Proxies send messages "to successor" and receive messages "from successor" without knowing who that successor is, how it's started, or what transport it uses. This enables:
+conductor 设计将代理与其后继解耦。代理发送消息"给后继"并从后继接收消息，而不知道后继是谁、如何启动或使用什么传输。这实现了：
 
-- Changing transport protocols or process management without recompiling proxies
-- Shipping proxies as low-capability WASM containers that need only a single communication channel
-- Reordering, adding, or removing proxies through configuration rather than code changes
+- 更改传输协议或进程管理而无需重新编译代理
+- 运输代理作为低能力 WASM 容器，只需要一个通信通道
+- 通过配置而不是代码更改来重新排序、添加或删除代理
 
-The tradeoff is protocol complexity, but this complexity lives in the conductor (implemented once) rather than being duplicated across proxy implementations.
+权衡是协议复杂性，但这种复杂性存在于 conductor 中（实现一次）而不是在代理实现中重复。
 
-### Why do all messages go through the conductor instead of direct proxy-to-proxy communication?
+### 为什么所有消息都通过 conductor 而不是直接代理到代理通信？
 
-Even with a conductor, proxies could communicate directly with their successors after the conductor sets up connections. Routing all messages through the conductor further minimizes proxy responsibilities to a single communication channel.
+即使使用 conductor，代理也可以在 conductor 设置连接后与其后继直接通信。通过 conductor 路由所有消息进一步将代理职责最小化到单个通信通道。
 
-This supports running proxies as isolated WebAssembly components with minimal capabilities. It also removes redundant logic: without the conductor routing messages, each proxy would need to manage connections to its successor.
+这支持将代理作为隔离的 WebAssembly 组件运行，功能最小。它还消除了冗余逻辑：如果没有 conductor 路由消息，每个代理需要管理与后继的连接。
 
-The conductor handles process management, capability negotiation, and message routing, allowing proxies to focus on transformation logic.
+conductor 处理进程管理、功能协商和消息路由，允许代理专注于转换逻辑。
 
-### How does the standard conductor implementation work?
+### 标准 conductor 实现如何工作？
 
-The `sacp-conductor` reference implementation can form trees of proxy chains. It can be configured to run in proxy mode (expecting `proxy/initialize`) or terminal mode (expecting `initialize`). When the last proxy in its managed chain sends a message to its successor, the conductor forwards that message to its own parent conductor (if in proxy mode) or to the final agent (if in terminal mode).
+`sacp-conductor` 参考实现可以形成代理链的树。它可以配置为代理模式（期望 `proxy/initialize`）或终端模式（期望 `initialize`）。当其管理的链中的最后一个代理向其后继发送消息时，conductor 将该消息转发给它自己的父 conductor（如果在代理模式下）或转发给最终的代理（如果在终端模式下）。
 
-This enables hierarchical structures like:
+这支持层次结构，例如：
 
 ```
 client → conductor1 → final-agent
-             ↓ manages
+             ↓ 管理
          proxy-a → conductor2 → proxy-d
-                      ↓ manages
+                      ↓ 管理
                   proxy-b → proxy-c
 ```
 
-The conductor handles process management, capability negotiation, and message routing, but these are implementation details - the protocol only specifies the message formats and capability requirements.
+conductor 处理进程管理、功能协商和消息路由，但这些是实现细节——协议只指定消息格式和功能要求。
 
-### What about security concerns with proxy chains?
+### 代理链有什么安全顾虑吗？
 
-Proxy components can intercept and modify all communication, so trust is essential - similar to installing any software. Users are responsible for the components they choose to run.
+代理组件可以拦截和修改所有通信，因此信任至关重要——类似于安装任何软件。用户对他们选择运行的组件负责。
 
-We plan to explore WebAssembly-based proxies which will offer some measure of sandboxing but such components could still modify prompts in unknown or malicious ways.
+我们计划探索基于 WebAssembly 的代理，这将提供一些沙盒措施，但此类组件仍可能以未知或恶意的方式修改提示。
 
-### What about performance implications of the proxy chain?
+### 代理链的性能影响如何？
 
-Our architecture does introduce additional message passing - each proxy in the chain adds extra hops as messages flow through the conductor. However, these messages are typically small and inexpensive, particularly when compared to the latency of actual LLM inference.
+我们的架构确实引入了额外的消息传递——链中的每个代理在消息流过时都会增加额外的跳。然而，这些消息通常很小且开销很小，特别是与实际 LLM 推理的延迟相比。
 
-For messages that contain significant quantities of data (large file contents, extensive context), we may wish to have the conductor store that data centrally and introduce a "reference" mechanism so that most proxies don't have to inspect or copy large payloads unless they specifically need to transform them.
+对于包含大量数据的消息（大文件内容、广泛上下文），我们可能希望 conductor 集中存储该数据并引入一个"引用"机制，这样大多数代理就不必检查或复制大量有效负载，除非它们特别需要转换它们。
 
-The benefits of composability typically outweigh the minimal latency costs for human-paced development interactions.
+可组合性的好处通常超过人类节奏开发交互的最小延迟成本。
 
-### What happens when proxy components crash or misbehave?
+### 当代理组件崩溃或行为不端时会发生什么？
 
-The conductor manages component lifecycles:
+conductor 管理组件生命周期：
 
-- Failed components are restarted automatically where possible
-- Component crashes don't affect the rest of the chain
-- Graceful degradation by bypassing failed components
-- Clear error reporting to help users debug configuration issues
+- 在可能的地方自动重启失败的组件
+- 组件崩溃不会影响链的其余部分
+- 通过绕过失败的组件实现优雅降级
+- 清晰的错误报告以帮助用户调试配置问题
 
-### Can proxy chains be nested or form trees?
+### 代理链可以嵌套或形成树吗？
 
-Yes! The conductor can itself run in proxy mode, enabling hierarchical structures:
+是的！conductor 本身可以以代理模式运行，从而实现层次结构：
 
 ```
-client → proxy1 → conductor (proxy mode) → final-agent
-                      ↓ manages
+client → proxy1 → conductor（代理模式） → final-agent
+                      ↓ 管理
                   p1 → p2 → p3
 ```
 
-This enables complex compositions while maintaining clean interfaces.
+这支持复杂的组合，同时保持干净的接口。
 
-### How could proxy chains support multi-agent scenarios in the future?
+### 代理链如何在将来支持多代理场景？
 
-The current design assumes a linear chain where each proxy has a single successor. To support M:N topologies where a proxy communicates with multiple peers (e.g., a research coordinator dispatching to multiple specialized agents), we could extend `proxy/successor` with an optional `peer` field:
+当前设计假设一个线性链，其中每个代理有一个单一的后继。为了支持 M:N 拓扑，其中代理与多个对等方通信（例如，将任务分派给多个专业代理的研究协调器），我们可以使用可选的 `peer` 字段扩展 `proxy/successor`：
 
 ```json
 {
@@ -540,21 +540,21 @@ The current design assumes a linear chain where each proxy has a single successo
 }
 ```
 
-When `peer` is omitted, the message goes to the default successor (backwards compatible with the current linear chain model). When present, it specifies which peer the message is intended for. The `proxy/initialize` response could be extended to enumerate available peers, enabling proxies to discover and coordinate between multiple downstream components.
+当 `peer` 被省略时，消息转到默认后继（与当前线性链模型向后兼容）。当存在时，它指定消息 intended 的对等方。`proxy/initialize` 响应可以扩展以枚举可用的对等方，使代理能够发现和协调多个下游组件。
 
-### What's the current implementation status?
+### 当前的实现状态如何？
 
-A prototype version of this proposal has been implemented and is available on crates.io as the crates:
+此提案的原型版本已经实现，并在 crates.io 上作为以下 crate 提供：
 
-- `sacp` -- base ACP protocol SDK
-  - `sacp-tokio` -- adds specific utilities for use with the `tokio` runtime
-- `sacp-proxy` -- extensions for implementing a proxy
-  - `sacp-rmcp` -- adds specific proxy extension traits for bridging to the rmcp crate
-- `sacp-conductor` -- reference conductor implementation
+- `sacp` -- 基础 ACP 协议 SDK
+  - `sacp-tokio` -- 为 `tokio` 运行时添加特定工具
+- `sacp-proxy` -- 实现代理的扩展
+  - `sacp-rmcp` -- 为桥接到 rmcp crate 添加特定的代理扩展特征
+- `sacp-conductor` -- 参考 conductor 实现
 
-The canonical sources for those crates is currently the [symposium-dev/symposium-acp] repository. However, copies have been upstreamed to the [agentclientprotocol/rust-sdk](https://github.com/agentclientprotocol/rust-sdk/tree/main/src/sacp-conductor) repository and, if and when this RFD is accepted, that will become the canonical home.
+这些 crate 的规范源目前是 [symposium-dev/symposium-acp] 仓库。但是，副本已上游到 [agentclientprotocol/rust-sdk](https://github.com/agentclientprotocol/rust-sdk/tree/main/src/sacp-conductor) 仓库，并且如果此 RFD 被接受，那将成为规范主页。
 
-## Revision history
+## 修订历史
 
-- Initial draft based on working implementation in symposium-acp repository.
-- Split MCP-over-ACP transport into [separate RFD](./mcp-over-acp) to enable independent use by any ACP component.
+- 基于 symposium-acp 仓库中的工作实现初始草稿。
+- 将 MCP-over-ACP 传输拆分为[单独的 RFD](./mcp-over-acp)以使任何 ACP 组件能够独立使用。

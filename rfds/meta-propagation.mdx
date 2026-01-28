@@ -1,66 +1,66 @@
 ---
-title: "Meta Field Propagation Conventions"
+title: "元字段传播约定"
 ---
 
-- Author(s): [Adrian Cole](https://github.com/codefromthecrypt)
-- Champion: [@benbrandt](https://github.com/benbrandt)
+- 作者：[Adrian Cole](https://github.com/codefromthecrypt)
+- 支持者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-Document `params._meta` as the convention for propagating metadata from clients to agents, such as trace identifiers or correlation IDs. This aligns with [MCP](https://modelcontextprotocol.io/), enabling shared instrumentation since both protocols use stdio JSON-RPC transports.
+将 `params._meta` 记录为从客户端向代理传播元数据的约定，例如追踪标识符或关联 ID。这与 [MCP](https://modelcontextprotocol.io/) 保持一致，由于两个协议都使用 stdio JSON-RPC 传输，从而实现共享检测。
 
-## Status quo
+## 现状
 
-ACP clients already propagate context to agents via `_meta`. For example, `requestId` is used for request correlation in [AionUi](https://github.com/iOfficeAI/AionUi/blob/main/src/common/codex/types/eventData.ts#L12-L16).
+ACP 客户端已经通过 `_meta` 向代理传播上下文。例如，`requestId` 用于 [AionUi](https://github.com/iOfficeAI/AionUi/blob/main/src/common/codex/types/eventData.ts#L12-L16) 中的请求关联。
 
-However, the [extensibility](../protocol/extensibility) documentation does not specify the `_meta` type or document its use for propagation. Without documentation, parties must coordinate ad hoc, which can lead to portability accidents (such as one side using `_meta.traceparent` and the other `_meta.otel.traceparent`). Documenting that propagated fields are root keys in `_meta` prevents this.
+然而，[extensibility](../protocol/extensibility) 文档没有指定 `_meta` 类型或记录其用于传播的内容。没有文档记录，各方必须临时协调，这可能导致可移植性事故（例如，一方使用 `_meta.traceparent` 而另一方使用 `_meta.otel.traceparent`）。记录传播的字段是 `_meta` 中的根键可以防止这种情况。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-Update the [extensibility](../protocol/extensibility#the-_meta-field) documentation with two changes:
+用两个更改更新 [extensibility](../protocol/extensibility#the-_meta-field) 文档：
 
-1. Add the type `{ [key: string]: unknown }` to the existing summary sentence. This type is compatible with MCP SDKs.
-2. Add a new paragraph after the JSON example about propagation conventions.
+1. 将类型 `{ [key: string]: unknown }` 添加到现有的摘要句子中。此类型与 MCP SDK 兼容。
+2. 在 JSON 示例之后添加一个关于传播约定的新段落。
 
-## Shiny future
+## 美好的未来
 
-- Same instrumentation (OpenInference, etc.) works for both ACP and MCP.
-- Observability tools can correlate traces across protocols.
+- 相同的检测（OpenInference 等）适用于 ACP 和 MCP。
+- 可观测性工具可以跨协议关联追踪。
 
-## Implementation details
+## 实施细节
 
-**Change 1**: Update the existing summary sentence in [extensibility](../protocol/extensibility#the-_meta-field):
+**更改 1**：更新 [extensibility](../protocol/extensibility#the-_meta-field) 中现有的摘要句子：
 
 ```diff
 -All types in the protocol include a `_meta` field that implementations can use to attach custom information.
 +All types in the protocol include a `_meta` field with type `{ [key: string]: unknown }` that implementations can use to attach custom information.
 ```
 
-**Change 2**: After the JSON example, before "Implementations **MUST NOT**", add:
+**更改 2**：在 JSON 示例之后，在"实现**不得**"之前，添加：
 
-> Clients may propagate fields to the agent for correlation purposes, such as `requestId`. The following root-level keys in `_meta` **SHOULD** be reserved for [W3C trace context](https://www.w3.org/TR/trace-context/) to guarantee interop with existing MCP implementations and OpenTelemetry tooling:
+> 客户端可以向代理传播字段以进行关联，例如 `requestId`。以下 `_meta` 中的根键**应该**为 [W3C 追踪上下文](https://www.w3.org/TR/trace-context/) 保留，以保证与现有 MCP 实现和 OpenTelemetry 工具的互操作性：
 >
 > - `traceparent`
 > - `tracestate`
 > - `baggage`
 
-## FAQ
+## 常见问题
 
-### Why document this now?
+### 为什么现在记录这个？
 
-Clients already propagate context via `_meta`. Documenting prevents incompatible drift and enables shared tooling with MCP.
+客户端已经通过 `_meta` 传播上下文。文档记录可以防止不兼容的漂移，并启用与 MCP 的共享工具。
 
-### Why reference MCP?
+### 为什么引用 MCP？
 
-ACP and MCP are the two core agentic protocols, both using stdio JSON-RPC. Where `_meta` types are compatible, instrumentation code can be abstracted and reused for both:
+ACP 和 MCP 是两个核心代理协议，都使用 stdio JSON-RPC。在 `_meta` 类型兼容的地方，检测代码可以被抽象并为两者重用。
 
-Here are several MCP SDKs that propagate W3C trace-context in `_meta`:
+以下是传播 W3C 追踪上下文的 MCP SDK：
 
-- [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk) - native W3C trace-context propagation
-- [OpenInference](https://github.com/Arize-ai/openinference) - Python and TypeScript MCP instrumentation (collaboration between Arize and Elastic)
-- [curioswitch/mcp-go-sdk-otel](https://github.com/curioswitch/mcp-go-sdk-otel) - Go MCP instrumentation
+- [MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk) - 原生 W3C 追踪上下文传播
+- [OpenInference](https://github.com/Arize-ai/openinference) - Python 和 TypeScript MCP 检测（Arize 和 Elastic 之间的合作）
+- [curioswitch/mcp-go-sdk-otel](https://github.com/curioswitch/mcp-go-sdk-otel) - Go MCP 检测
 
-## Revision history
+## 修订历史
 
-- 2025-12-04: Implementation in extensibility docs
-- 2025-11-28: Initial draft
+- 2025-12-04：在可扩展性文档中实施
+- 2025-11-28：初始草稿

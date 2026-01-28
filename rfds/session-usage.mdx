@@ -1,72 +1,72 @@
 ---
-title: "Session Usage and Context Status"
+title: "会话使用情况和上下文状态"
 ---
 
-- Author(s): [@ahmedhesham6](https://github.com/ahmedhesham6)
-- Champion: [@benbrandt](https://github.com/benbrandt)
+- 作者：[@ahmedhesham6](https://github.com/ahmedhesham6)
+- 支持者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-Add standardized usage and context window tracking to the Agent Client Protocol, enabling agents to report token consumption, cost estimates, and context window utilization in a consistent way across implementations.
+向代理客户端协议添加标准化的使用情况和上下文窗口跟踪，使代理能够以跨实现的一致方式报告令牌消耗、成本估算和上下文窗口利用率。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-Currently, the ACP protocol has no standardized way for agents to communicate:
+目前，ACP 协议没有标准化的方式让代理传达：
 
-1. **Token usage** - How many tokens were consumed in a turn or cumulatively
-2. **Context window status** - How much of the model's context window is being used
-3. **Cost information** - Estimated costs for API usage
-4. **Prompt caching metrics** - Cache hits/misses for models that support caching
+1. **令牌使用** - 一轮或累计消耗了多少令牌
+2. **上下文窗口状态** - 模型上下文窗口的使用量
+3. **成本信息** - API 使用的估算成本
+4. **提示缓存指标** - 支持缓存的模型的缓存命中/未命中
 
-This creates several problems:
+这造成了几种问题：
 
-- **No visibility into resource consumption** - Clients can't show users how much of their context budget is being used
-- **No cost transparency** - Users can't track spending or estimate costs before operations
-- **No context management** - Clients can't warn users when approaching context limits or suggest compaction
-- **Inconsistent implementations** - Each agent implements usage tracking differently (if at all)
+- **无法了解资源消耗** - 客户端无法向用户显示他们的上下文预算使用量
+- **没有成本透明度** - 用户无法跟踪支出或在操作前估算成本
+- **没有上下文管理** - 客户端无法在接近上下文限制时警告用户或建议压缩
+- **不一致的实现** - 每个代理以不同方式实现使用情况跟踪（如果有的话）
 
-Industry research shows common patterns across AI coding tools:
+行业研究显示 AI 编码工具中的常见模式：
 
-- LLM providers return cumulative token counts in API responses
-- IDE extensions display context percentage prominently (e.g., radial progress showing "19%")
-- Clients show absolute numbers on hover/detail (e.g., "31.4K of 200K tokens")
-- Tools warn users at threshold percentages (75%, 90%, 95%)
-- Auto-compaction features trigger when approaching context limits
-- Cost tracking focuses on cumulative session totals rather than per-turn breakdowns
+- LLM 提供商在 API 响应中返回累计令牌计数
+- IDE 扩展显著显示上下文百分比（例如，显示"19%"的径向进度）
+- 客户端在悬停/详细信息上显示绝对数字（例如，"31.4K/200K 个令牌"）
+- 工具在阈值百分比（75%、90%、95%）警告用户
+- 自动压缩功能在接近上下文限制时触发
+- 成本跟踪侧重于累计会话总数而不是每轮分解
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-We propose separating usage tracking into two distinct concerns:
+我们提议将使用情况跟踪分为两个不同的关注点：
 
-1. **Token usage** - Reported in `PromptResponse` after each turn (per-turn data)
-2. **Context window and cost** - Reported via `session/update` notifications with `sessionUpdate: "usage_update"` (session state)
+1. **令牌使用** - 在每轮之后在 `PromptResponse` 中报告（每轮数据）
+2. **上下文窗口和成本** - 通过 `session/update` 通知报告，会话更新为 `"usage_update"`（会话状态）
 
-This separation reflects how users consume this information:
+这种分离反映了用户消费这些信息的方式：
 
-- Token counts are tied to specific turns and useful immediately after a prompt
-- Context window and cost are cumulative session state that agents push proactively when available
+- 令牌计数绑定到特定的轮次，并在提示后立即有用
+- 上下文窗口和成本是累计的会话状态，代理主动推送（可用时）
 
-Agents send context updates at appropriate times:
+代理在适当时发送上下文更新：
 
-- On `session/new` response (if agent can query usage immediately)
-- On `session/load` / `session/resume` (for resumed/forked sessions)
-- After each `session/prompt` response (when usage data becomes available)
-- Anytime context window state changes significantly
+- 在 `session/new` 响应中（如果代理可以立即查询使用情况）
+- 在 `session/load` / `session/resume` 上（对于恢复/分叉的会话）
+- 在每个 `session/prompt` 响应之后（当使用情况数据可用时）
+- 任何时候上下文窗口状态发生重大变化
 
-This approach provides flexibility for different agent implementations:
+这种方法为不同的代理实现提供了灵活性：
 
-- Agents that support getting current usage without a prompt can immediately send updates when creating, resuming, or forking chats
-- Agents that only provide usage when actively prompting can send updates after sending a new prompt
+- 支持在不提示的情况下获取当前使用情况的代理可以在创建、恢复或分叉聊天时立即发送更新
+- 只在主动提示时提供使用情况的代理可以在发送新提示后发送更新
 
-### Token Usage in `PromptResponse`
+### `PromptResponse` 中的令牌使用
 
-Add a `usage` field to `PromptResponse` for token consumption tracking:
+在 `PromptResponse` 中添加 `usage` 字段以进行令牌消耗跟踪：
 
 ```json
 {
@@ -87,18 +87,18 @@ Add a `usage` field to `PromptResponse` for token consumption tracking:
 }
 ```
 
-#### Usage Fields
+#### 使用字段
 
-- `total_tokens` (number, required) - Sum of all token types across session
-- `input_tokens` (number, required) - Total input tokens across all turns
-- `output_tokens` (number, required) - Total output tokens across all turns
-- `thought_tokens` (number, optional) - Total thought/reasoning tokens (for o1/o3 models)
-- `cached_read_tokens` (number, optional) - Total cache read tokens
-- `cached_write_tokens` (number, optional) - Total cache write tokens
+- `total_tokens`（数字，必需）- 整个会话中所有令牌类型的总和
+- `input_tokens`（数字，必需）- 所有轮次中的输入令牌总数
+- `output_tokens`（数字，必需）- 所有轮次中的输出令牌总数
+- `thought_tokens`（数字，可选）- 所有轮次中的思维/推理令牌总数（用于 o1/o3 模型）
+- `cached_read_tokens`（数字，可选）- 所有轮次中的缓存读取令牌总数
+- `cached_write_tokens`（数字，可选）- 所有轮次中的缓存写入令牌总数
 
-### Context Window and Cost via `session/update`
+### 通过 `session/update` 的上下文窗口和成本
 
-Agents send context window and cost information via `session/update` notifications with `sessionUpdate: "usage_update"`:
+代理通过 `sessionUpdate: "usage_update"` 的 `session/update` 通知发送上下文窗口和成本信息：
 
 ```json
 {
@@ -115,20 +115,20 @@ Agents send context window and cost information via `session/update` notificatio
 }
 ```
 
-#### Context Window Fields (required)
+#### 上下文窗口字段（必需）
 
-- `used` (number, required) - Tokens currently in context
-- `size` (number, required) - Total context window size in tokens
+- `used`（数字，必需）- 当前上下文中的令牌数
+- `size`（数字，必需）- 上下文窗口的总大小（以令牌为单位）
 
-Note: Clients can compute `remaining` as `size - used` and `percentage` as `used / size * 100` if needed.
+注意：客户端可以根据需要计算 `remaining` 为 `size - used` 和 `percentage` 为 `used / size * 100`。
 
-#### Cost Fields (optional)
+#### 成本字段（可选）
 
-- `cost` (object, optional) - Cumulative session cost
-  - `amount` (number, required) - Total cumulative cost for session
-  - `currency` (string, required) - ISO 4217 currency code (e.g., "USD", "EUR")
+- `cost`（对象，可选）- 累计会话成本
+  - `amount`（数字，必需）- 会话的总累计成本
+  - `currency`（字符串，必需）- ISO 4217 货币代码（例如，"USD"、"EUR"）
 
-Example with optional cost:
+带有可选成本的示例：
 
 ```json
 {
@@ -149,175 +149,175 @@ Example with optional cost:
 }
 ```
 
-### Design Principles
+### 设计原则
 
-1. **Separation of concerns** - Token usage is per-turn data, context window and cost are session state
-2. **Agent-pushed notifications** - Agents proactively send context updates when data becomes available, following the same pattern as other dynamic session properties (`available_commands_update`, `current_mode_update`, `session_info_update`)
-3. **Agent calculates, client can verify** - Agent knows its model best and provides calculations, but includes raw data for client verification
-4. **Flexible cost reporting** - Cost is optional since not all agents track it. Support any currency, don't assume USD
-5. **Prompt caching support** - Include cache read/write tokens for models that support it
-6. **Optional but recommended** - Usage tracking is optional to maintain backward compatibility
-7. **Flexible timing** - Agents send updates when they can: immediately for agents with on-demand APIs, or after prompts for agents that only provide usage during active prompting
+1. **关注点分离** - 令牌使用是每轮数据，上下文窗口和成本是会话状态
+2. **代理推送通知** - 代理在数据可用时主动发送上下文更新，遵循与其他动态会话属性相同的模式（`available_commands_update`、`current_mode_update`、`session_info_update`）
+3. **代理计算，客户端可以验证** - 代理最了解其模型并提供计算，但包含原始数据以供客户端验证
+4. **灵活的成本报告** - 成本是可选的，因为并非所有代理都跟踪它。支持任何货币，不要假设美元
+5. **提示缓存支持** - 包括支持缓存的模型的缓存读取/写入令牌
+6. **可选但推荐** - 使用情况跟踪是可选的以保持向后兼容性
+7. **灵活的时间** - 代理在可以时发送更新：对于具有按需 API 的代理立即，对于只在主动提示时提供使用情况的代理在提示后发送
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-**For Users:**
+**对于用户：**
 
-- **Visibility**: Users see real-time context window usage with percentage indicators
-- **Cost awareness**: Users can track spending and check cumulative cost at any time
-- **Better planning**: Users know when to start new sessions or compact context
-- **Transparency**: Clear understanding of resource consumption
+- **可见性**：用户看到带有百分比指示器的实时上下文窗口使用情况
+- **成本意识**：用户可以跟踪支出并随时检查累计成本
+- **更好的规划**：用户知道何时开始新会话或压缩上下文
+- **透明度**：清楚了解资源消耗
 
-**For Client Implementations:**
+**对于客户端实现：**
 
-- **Consistent UI**: All clients can show usage in a standard way (progress bars, percentages, warnings)
-- **Smart warnings**: Clients can warn users at 75%, 90% context usage
-- **Cost controls**: Clients can implement budget limits and alerts
-- **Analytics**: Clients can track usage patterns and optimize
-- **Reactive updates**: Clients receive context updates reactively via notifications, updating UI immediately when agents push new data
-- **No polling needed**: Updates arrive automatically when agents have new information, eliminating the need for clients to poll
+- **一致的 UI**：所有客户端可以以标准方式显示使用情况（进度条、百分比、警告）
+- **智能警告**：客户端可以在 75%、90% 上下文使用量时警告用户
+- **成本控制**：客户端可以实现预算限制和警报
+- **分析**：客户端可以跟踪使用模式并进行优化
+- **反应式更新**：客户端通过通知接收上下文更新，当代理推送新数据时立即更新 UI
+- **无需轮询**：更新在代理有新信息时自动到达，消除了客户端轮询的需要
 
-**For Agent Implementations:**
+**对于代理实现：**
 
-- **Standard reporting**: Clear contract for what to report and when
-- **Flexibility**: Optional fields allow agents to report what they can calculate
-- **Model diversity**: Works with any model (GPT, Claude, Llama, etc.)
-- **Caching support**: First-class support for prompt caching
+- **标准报告**：关于报告什么和何时报告的清晰合同
+- **灵活性**：可选字段允许代理报告它们可以计算的内容
+- **模型多样性**：适用于任何模型（GPT、Claude、Llama 等）
+- **缓存支持**：一流支持提示缓存
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
-1. **Update schema.json** to add:
-   - `Usage` type with token fields
-   - `Cost` type with `amount` and `currency` fields
-   - `ContextUpdate` type with `used`, `size` (required) and optional `cost` field
-   - Add optional `usage` field to `PromptResponse`
-   - Add `UsageUpdate` variant to `SessionUpdate` oneOf array (with `sessionUpdate: "usage_update"`)
+1. **更新 schema.json** 以添加：
+   - 带令牌字段的 `Usage` 类型
+   - 带 `amount` 和 `currency` 字段的 `Cost` 类型
+   - 带 `used`、`size`（必需）和可选 `cost` 字段的 `ContextUpdate` 类型
+   - 在 `PromptResponse` 中添加可选的 `usage` 字段
+   - 在 `SessionUpdate` oneOf 数组中添加 `UsageUpdate` 变体（带有 `sessionUpdate: "usage_update"`）
 
-2. **Update protocol documentation**:
-   - Document `usage` field in `/docs/protocol/prompt-turn.mdx`
-   - Document `session/update` notification with `sessionUpdate: "usage_update"` variant
-   - Add examples showing typical usage patterns and when agents send context updates
+2. **更新协议文档**：
+   - 在 `/docs/protocol/prompt-turn.mdx` 中记录 `usage` 字段
+   - 记录带有 `sessionUpdate: "usage_update"` 变体的 `session/update` 通知
+   - 添加示例显示典型使用模式以及代理何时发送上下文更新
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-### Why separate token usage from context window and cost?
+### 为什么将令牌使用与上下文窗口和成本分离？
 
-Different users care about different things at different times:
+不同用户在不同的时刻关心不同的事情：
 
-- **Token counts**: Relevant immediately after a turn completes to understand the breakdown
-- **Context window remaining**: Relevant at any time, especially before issuing a large prompt. "Do I need to handoff or compact?"
-- **Cumulative cost**: Session-level state that agents push when available
+- **令牌计数**：在轮次完成后立即相关以了解分解
+- **剩余上下文窗口**：任何时候都相关，特别是在发出大提示之前。"我需要交接还是压缩？"
+- **累计成本**：会话级别状态，代理在可用时推送
 
-Separating them allows:
+分离它们允许：
 
-- Cleaner data model where per-turn data stays in turn responses
-- Agents to push context updates proactively when data becomes available
-- Clients to receive updates reactively without needing to poll
+- 更清晰的数据模型，其中每轮数据保留在轮次响应中
+- 代理在数据可用时主动推送上下文更新
+- 客户端无需轮询即可被动接收更新
 
-### Why is cost in session/update instead of PromptResponse?
+### 为什么成本在 `session/update` 中而不是 `PromptResponse` 中？
 
-Cost is cumulative session state, similar to context window:
+成本是累计的会话状态，类似于上下文窗口：
 
-- Users want to track total spending, not just per-turn costs
-- Keeps `PromptResponse` focused on per-turn token breakdown
-- Both cost and context window are session-level metrics that belong together
-- Cost is optional since not all agents track it
+- 用户想要跟踪总支出，而不仅仅是每轮成本
+- 保持 `PromptResponse` 专注于每轮令牌分解
+- 成本和上下文窗口都是属于一起的会话级别指标
+- 成本是可选的，因为并非所有代理都跟踪它
 
-### How do users know when to handoff or compact the context?
+### 用户如何知道何时交接或压缩上下文？
 
-The context update notification provides everything needed:
+上下文更新通知提供了所需的一切：
 
-- `used` and `size` give absolute numbers for precise tracking
-- Clients can compute `remaining` as `size - used` and `percentage` as `used / size * 100`
-- `size` lets clients understand the total budget
+- `used` 和 `size` 提供精确跟踪的绝对数字
+- 客户端可以计算 `remaining` 为 `size - used` 和 `percentage` 为 `used / size * 100`
+- `size` 让客户端了解总预算
 
-**Recommended client behavior:**
+**推荐的客户端行为：**
 
-| Percentage | Action                                                           |
+| 百分比 | 操作 |
 | ---------- | ---------------------------------------------------------------- |
-| < 75%      | Normal operation                                                 |
-| 75-90%     | Yellow indicator, suggest "Context filling up"                   |
-| 90-95%     | Orange indicator, recommend "Start new session or summarize"     |
-| > 95%      | Red indicator, warn "Next prompt may fail - handoff recommended" |
+| < 75%      | 正常操作 |
+| 75-90%     | 黄色指标，建议"上下文正在填满" |
+| 90-95%     | 橙色指标，建议"开始新会话或总结" |
+| > 95%      | 红色指标，警告"下一个提示可能失败 - 推荐交接" |
 
-Clients can also:
+客户端还可以：
 
-- Offer "Compact context" or "Summarize conversation" actions
-- Auto-suggest starting a new session
-- Implement automatic handoff when approaching limits
+- 提供"压缩上下文"或"总结对话"操作
+- 自动建议开始新会话
+- 在接近限制时实现自动交接
 
-### Why not assume USD for cost?
+### 为什么不为成本假设美元？
 
-Agents may bill in different currencies:
+代理可能以不同货币计费：
 
-- European agents might bill in EUR
-- Asian agents might bill in JPY or CNY
-- Some agents might use credits or points
-- Currency conversion rates change
+- 欧洲代理可能以欧元计费
+- 亚洲代理可能以日元或人民币计费
+- 一些代理可能使用积分或点数
+- 货币汇率会变化
 
-Better to report actual billing currency and let clients convert if needed.
+最好报告实际的计费货币，让客户端在需要时进行转换。
 
-### What if the agent can't calculate some fields?
+### 如果代理无法计算某些字段怎么办？
 
-All fields except the basic token counts are optional. Agents report what they can calculate. Clients handle missing fields gracefully.
+除基本令牌计数外的所有字段都是可选的。代理报告它们可以计算的内容。客户端优雅地处理缺失的字段。
 
-### How does this work with streaming responses?
+### 这与流式响应如何工作？
 
-- During streaming: Agents may send progressive context updates via `session/update` notifications as usage changes
-- Final response: Include complete token usage in `PromptResponse`
-- Context window and cost: Agents send `session/update` notifications with `sessionUpdate: "usage_update"` when data becomes available (after prompt completion, on session creation/resume, or when context state changes significantly)
+- 在流式传输期间：代理可以通过 `session/update` 通知随着使用情况变化发送渐进式上下文更新
+- 最终响应：在 `PromptResponse` 中包含完整的令牌使用情况
+- 上下文窗口和成本：代理在数据可用时发送带有 `sessionUpdate: "usage_update"` 的 `session/update` 通知（在提示完成后、会话创建/恢复时，或上下文状态发生重大变化时）
 
-### What about models without fixed context windows?
+### 对于没有固定上下文窗口的模型怎么办？
 
-- Report effective context window size
-- For models with dynamic windows, report current limit
-- Update size if it changes
-- Set to `null` if truly unlimited (rare)
+- 报告有效的上下文窗口大小
+- 对于具有动态窗口的模型，报告当前限制
+- 如果发生变化则更新大小
+- 如果真正无限则设置为 `null`（罕见）
 
-### What about rate limits and quotas?
+### 关于速率限制和配额呢？
 
-This RFD focuses on token usage and context windows. Rate limits and quotas are a separate concern that could be addressed in a future RFD. However, the cost tracking here helps users understand their usage against quota limits.
+这个 RFD 侧重于令牌使用情况和上下文窗口。速率限制和配额是可以在未来的 RFD 中解决的单独问题。然而，这里的成本跟踪帮助用户了解他们对配额限制的使用情况。
 
-### Should cached tokens count toward context window?
+### 缓存的令牌是否计入上下文窗口？
 
-Yes, cached tokens still occupy context window space. They're just cheaper to process. The context window usage should include all tokens (regular + cached).
+是的，缓存的令牌仍然占据上下文窗口空间。它们只是处理起来更便宜。上下文窗口使用情况应包括所有令牌（常规 + 缓存）。
 
-### Why notification instead of request?
+### 为什么通知而不是请求？
 
-Using `session/update` notifications instead of a `session/status` request provides several benefits:
+使用 `session/update` 通知而不是 `session/status` 请求提供了几个好处：
 
-1. **Consistency**: Follows the same pattern as other dynamic session properties (`available_commands_update`, `current_mode_update`, `session_info_update`)
-2. **Agent flexibility**: Agents can send updates when they have data available, whether that's immediately (for agents with on-demand APIs) or after prompts (for agents that only provide usage during active prompting)
-3. **No polling**: Clients receive updates reactively without needing to poll
-4. **Real-time updates**: Updates flow naturally as part of the session lifecycle
+1. **一致性**：遵循与其他动态会话属性相同的模式（`available_commands_update`、`current_mode_update`、`session_info_update`）
+2. **代理灵活性**：代理可以在数据可用时发送更新，无论是立即（对于具有按需 API 的代理）还是提示后（对于只在主动提示时提供使用情况的代理）
+3. **无需轮询**：客户端无需轮询即可被动接收更新
+4. **实时更新**：更新作为会话生命周期的一部分自然流动
 
-### What if the client connects mid-session?
+### 如果客户端在会话中途连接怎么办？
 
-When a client connects to an existing session (via `session/load` or `session/resume`), agents **SHOULD** send a context update notification if they have current usage data available. This ensures the client UI can immediately display accurate context window and cost information.
+当客户端连接到现有会话（通过 `session/load` 或 `session/resume`）时，代理**应该**在它们有当前使用情况数据可用时发送上下文更新通知。这确保客户端 UI 可以立即显示准确的上下文窗口和成本信息。
 
-For agents that only provide usage during active prompting, the client UI may not show usage until after the first prompt is sent, which is acceptable given the agent's capabilities.
+对于只在主动提示时提供使用情况的代理，客户端 UI 可能在发送第一个提示之前不显示使用情况，这在给定代理能力的情况下是可以接受的。
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-**Alternatives considered:**
+**考虑的替代方案：**
 
-1. **Everything in PromptResponse** - Simpler, but context window and cost are session state that users may want to track independently of turns.
+1. **全部在 `PromptResponse` 中** - 更简单，但上下文窗口和成本是会话状态，用户可能希望独立于轮次跟踪。
 
-2. **Request/response (`session/status`)** - Requires clients to poll, and some agents don't have APIs to query current status without a prompt. The notification approach is more flexible and consistent with other dynamic session properties.
+2. **请求/响应（`session/status`）** - 需要客户端轮询，并且一些代理在没有提示的情况下没有 API 来查询当前状态。通知方法更灵活，并与与其他动态会话属性一致的模式。
 
-3. **Client calculates everything** - Rejected because client doesn't know model's tokenizer, exact context window size, or pricing.
+3. **客户端计算一切** - 被拒绝，因为客户端不知道模型的标记器、确切的上下文窗口大小或定价。
 
-4. **Only percentage, no raw tokens** - Rejected because users want absolute numbers, clients can't verify calculations, and it's less transparent.
+4. **只有百分比，没有原始令牌** - 被拒绝，因为用户想要绝对数字，客户端无法验证计算，并且透明度较低。
 
-## Revision history
+## 修订历史
 
-- 2025-12-07: Initial draft
-- 2025-12-13: Changed from `session/status` request method to `session/update` notification with `sessionUpdate: "context_update"`. Made `cost` optional and removed `remaining` field (clients can compute as `size - used`). This approach provides more flexibility for agents and follows the same pattern as other dynamic session properties.
-- 2025-12-17: Renamed `reasoning_tokens` to `thought_tokens` for consistency with ACP terminology. Removed `percentage` field (clients can compute as `used / size * 100`).
-- 2025-12-19: Renamed `sessionUpdate: "context_update"` to `sessionUpdate: "usage_update"` to better reflect the payload semantics (includes both context window info and cumulative cost).
+- 2025-12-07：初始草稿
+- 2025-12-13：从 `session/status` 请求方法更改为带有 `sessionUpdate: "context_update"` 的 `session/update` 通知。使 `cost` 可选并删除 `remaining` 字段（客户端可以计算为 `size - used`）。这种方法为代理提供了更大的灵活性，并遵循与其他动态会话属性相同的模式。
+- 2025-12-17：将 `reasoning_tokens` 重命名为 `thought_tokens` 以与 ACP 术语保持一致。移除 `percentage` 字段（客户端可以计算为 `used / size * 100`）。
+- 2025-12-19：将 `sessionUpdate: "context_update"` 重命名为 `sessionUpdate: "usage_update"` 以更好地反映有效负载语义（包括上下文窗口信息和累计成本）。

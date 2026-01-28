@@ -1,44 +1,44 @@
 ---
-title: "ACP Agent Registry"
+title: "ACP 代理注册表"
 ---
 
-**Author:** [@ignatov](https://github.com/ignatov)
-**Champion:** [@benbrandt](https://github.com/benbrandt)
+**作者：** [@ignatov](https://github.com/ignatov)
+**支持者：** [@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-ACP needs a single, trusted registry of agents so clients can discover integrations, understand their capabilities, and configure them automatically. This RFD proposes (1) a canonical manifest format that every agent must publish, (2) a dedicated `agentclientprotocol/registry` repo where maintainers contribute those manifests, and (3) tooling that aggregates and publishes a searchable catalog for editors and other clients.
+ACP 需要一个单一的、受信任的代理注册表，以便客户端能够发现集成、了解它们的特性并自动配置它们。这个 RFD 提议（1）每个代理必须发布的规范清单格式，（2）一个专用的 `agentclientprotocol/registry` 仓库，维护者可以在其中贡献这些清单，（3）聚合并发布可搜索目录以供编辑器和其他客户端使用的工具。
 
-## Status quo
+## 现状
 
-There is no canonical listing of ACP-compatible agents. Information lives in scattered READMEs or proprietary feeds, which makes it hard to:
+没有 ACP 兼容代理的规范列表。信息分散在自述文件或专有信息中，这使得：
 
-- Let users discover agents directly inside ACP-aware clients.
-- Ensure protocol-version compatibility or capability coverage.
-- Keep metadata consistent (auth requirements, hosting model, license, etc.).
+- 让用户在 ACP 感知的客户端内直接发现代理变得困难
+- 确保协议版本兼容性或功能覆盖
+- 保持元数据一致（身份验证要求、托管模式、许可证等）
 
-Every editor builds bespoke manifests or scrapes GitHub, leading to duplication and stale data.
+每个编辑器都构建自定义清单或抓取 GitHub，导致数据重复和过时。
 
-## Agent manifest format (core proposal)
+## 代理清单格式（核心提案）
 
-Each agent advertises itself via `agent.json` stored under `<id>/` in the registry repo. JSONC keeps things close to ACP’s JSON-centric schemas while remaining human-friendly during authoring. Fields (required unless noted):
+每个代理通过存储在注册表仓库中 `<id>/` 下的 `agent.json` 来宣传自己。JSONC 保持与 ACP 的 JSON 中心模式接近，同时在创作时保持对人类友好。除非另有说明，以下字段是必需的：
 
-| Field            | Description                                                                                                                                                                                                                                                                                                                                            |
+| 字段 | 描述 |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `id`             | Lowercase slug, unique across registry (also the folder name).                                                                                                                                                                                                                                                                                         |
-| `name`           | Human-readable label.                                                                                                                                                                                                                                                                                                                                  |
-| `version`        | Agent release version surfaced to users.                                                                                                                                                                                                                                                                                                               |
-| `schema_version` | Semver of the manifest schema. Allows future breaking changes.                                                                                                                                                                                                                                                                                         |
-| `description`    | Description of the agent's functionality and purpose.                                                                                                                                                                                                                                                                                                  |
-| `homepage`       | URL for docs/marketing.                                                                                                                                                                                                                                                                                                                                |
-| `repository`     | Source repository URL.                                                                                                                                                                                                                                                                                                                                 |
-| `authors`        | Array of author/organization names (mirrors `authors` in the TOML example).                                                                                                                                                                                                                                                                            |
-| `license`        | Licence (string).                                                                                                                                                                                                                                                                                                                                      |
-| `capabilities`   | Array of ACP method names implemented (e.g. `["terminal/new","files/read"]`).                                                                                                                                                                                                                                                                          |
-| `auth`           | Array of auth options for authentication. This is the trickiest part of the schema.                                                                                                                                                                                                                                                                    |
-| `distribution`   | Object mapping target platforms to download/execution info. Each target key follows `<os>-<arch>` format (e.g., `darwin-aarch64`, `linux-x86_64`, `windows-x86_64`). Each target specifies `archive` (download URL), `cmd` (executable path), optional `args` (array of command-line arguments), and optional `env` (object of environment variables). |
+| `id` | 小写 slug，在注册表中唯一（也是文件夹名称）。 |
+| `name` | 人类可读的标签。 |
+| `version` | 向用户显示的代理发布版本。 |
+| `schema_version` | 清单模式的 semver。允许未来的破坏性更改。 |
+| `description` | 代理功能和用途的描述。 |
+| `homepage` | 文档/营销的 URL。 |
+| `repository` | 源代码仓库 URL。 |
+| `authors` | 作者/组织名称数组（镜像 TOML 示例中的 `authors`）。 |
+| `license` | 许可证（字符串）。 |
+| `capabilities` | 实现的 ACP 方法名称数组（例如 `["terminal/new","files/read"]`）。 |
+| `auth` | 身份验证的身份验证选项数组。这是模式中最复杂的部分。 |
+| `distribution` | 将目标平台映射到下载/执行信息的对象。每个目标键遵循 `<os>-<arch>` 格式（例如 `darwin-aarch64`、`linux-x86_64`、`windows-x86_64`）。每个目标指定 `archive`（下载 URL）、`cmd`（可执行路径）、可选的 `args`（命令行参数数组）和可选的 `env`（环境变量对象）。 |
 
-Example skeleton:
+示例框架：
 
 ```jsonc
 {
@@ -46,7 +46,7 @@ Example skeleton:
   "name": "SomeAgent",
   "version": "1.0.0",
   "schema_version": "1",
-  "description": "Agent for code editing",
+  "description": "用于代码编辑的代理",
   "homepage": "https://github.com/example/someagent",
   "repository": "https://github.com/example/someagent",
   "authors": ["Example Team"],
@@ -90,37 +90,37 @@ Example skeleton:
 }
 ```
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-1. **Manifest spec** (above) becomes normative; we publish the JSON Schema and validator script so maintainers can lint locally.
-2. **Registry repository** `github.com/agentclientprotocol/registry`:
-   - Structure: `<id>/agent.json`, optional `icon.svg` (or `icon-light.svg` and `icon-dark.svg` for theme-specific variants), optional `README.md`.
-   - Icons should be SVG format for scalability. If providing theme-specific icons, both light and dark variants must be included.
-   - CI: validate manifests, enforce slug uniqueness, check asset sizes, generate aggregate artifacts.
-3. **Aggregated outputs**:
-   - `registry.json`: deterministic list of all agents with JSONC stripped.
-4. **Distribution & search**:
-   - Clients fetch `registry.json` from a pinned release or `https://agentclientprotocol.com/registry.json` or `https://registry.agentclientprotocol.com`.
-   - Static site offers filters for capability, protocol version, deployment, auth model, and tags.
+1. **清单规范**（上述）成为规范性的；我们发布 JSON Schema 和验证脚本，以便维护者可以在本地进行 lint 检查。
+2. **注册表仓库** `github.com/agentclientprotocol/registry`：
+   - 结构：`<id>/agent.json`，可选的 `icon.svg`（或主题特定变体的 `icon-light.svg` 和 `icon-dark.svg`），可选的 `README.md`。
+   - 图标应为 SVG 格式以支持可伸缩性。如果提供主题特定图标，必须同时包含浅色和深色变体。
+   - CI：验证清单，强制 slug 唯一性，检查资源大小，生成聚合产物。
+3. **聚合输出**：
+   - `registry.json`：所有代理的确定性列表，剥离 JSONC。
+4. **分发和搜索**：
+   - 客户端从固定的发布或 `https://agentclientprotocol.com/registry.json` 或 `https://registry.agentclientprotocol.com` 获取 `registry.json`。
+   - 静态站点提供对功能、协议版本、部署、身份验证模型和标签的过滤。
 
-## Shiny future
+## 美好的未来
 
-- Agent maintainers make PRs to update their manifests; CI keeps data clean.
-- Editors/clients can bootstrap ACP support by fetching one JSON file and filtering locally.
-- The ACP website displays the same data for humans, ensuring consistency.
-- Protocol-version mismatches are visible immediately; clients can warn or hide incompatible agents.
+- 代理维护者提交 PR 来更新他们的清单；CI 保持数据清洁。
+- 编辑器/客户端可以通过获取一个 JSON 文件并在本地过滤来引导 ACP 支持。
+- ACP 网站显示相同的数据供人类阅读，确保一致性。
+- 协议版本不匹配立即可见；客户端可以警告或隐藏不兼容的代理。
 
-## Implementation details and plan
+## 实施细节和计划
 
-**Phase 1 – Spec & repo bootstrap**
+**第 1 阶段——规范和仓库引导**
 
-- Think about the auth options.
-- Finalize JSON Schema and documentation.
-- Ask agent developers to contribute their thoughts on the spec.
-- Create registry repo with CI (GitHub Actions) that runs validation on PRs.
-- Seed with a few reference agents to prove the workflow.
+- 考虑身份验证选项。
+- 最终确定 JSON Schema 和文档。
+- 要求代理开发人员对规范提供反馈。
+- 创建带有 CI（GitHub Actions）的注册表仓库，在 PR 上运行验证。
+- 用一些参考代理种子化以证明工作流程。
 
-## Revision history
+## 修订历史
 
-- 2025-11-28: Initial draft.
-- 2025-12-16: Minors.
+- 2025-11-28：初始草稿。
+- 2025-12-16：次要更新。

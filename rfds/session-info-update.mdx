@@ -1,63 +1,63 @@
 ---
-title: "Session Info Update"
+title: "会话信息更新"
 ---
 
-- Author(s): [@ignatov](https://github.com/ignatov)
+- 作者：[@ignatov](https://github.com/ignatov)
 
-## Elevator pitch
+## 电梯演讲
 
-Add a `session_info_update` variant to the existing `SessionUpdate` notification type that allows agents to update session metadata (particularly title/name), enabling dynamic session identification in client UIs without requiring a new endpoint.
+向现有的 `SessionUpdate` 通知类型添加一个 `session_info_update` 变体，允许代理更新会话元数据（特别是标题/名称），从而实现客户端 UI 中的动态会话识别，而不需要新的端点。
 
-## Status quo
+## 现状
 
-Currently, the ACP protocol provides session management through `session/new`, `session/load`, and `session/list` (unstable). The `session/list` endpoint returns `SessionInfo` objects that include an optional `title` field for displaying session names in client UIs.
+目前，ACP 协议通过 `session/new`、`session/load` 和 `session/list`（不稳定）提供会话管理。`session/list` 端点返回包含可选 `title` 字段的 `SessionInfo` 对象，用于在客户端 UI 中显示会话名称。
 
-However, there are several problems:
+然而，有几个问题：
 
-1. **No way to communicate title updates** - The `title` field in `SessionInfo` is static in the list response. Agents cannot dynamically update it as the session evolves.
+1. **无法传达标题更新** - `SessionInfo` 中的 `title` 字段在列表响应中是静态的。代理无法随着会话的发展动态更新它。
 
-2. **No mechanism for real-time metadata updates** - Unlike commands (`available_commands_update`) or modes (`current_mode_update`), there's no way for agents to:
-   - Auto-generate titles after the first meaningful exchange
-   - Update titles as conversation context shifts
-   - Provide custom metadata that reflects session state
+2. **没有实时元数据更新机制** - 与命令（`available_commands_update`）或模式（`current_mode_update`）不同，代理无法：
+   - 在第一次有意义的交换后自动生成标题
+   - 随着对话上下文的变化更新标题
+   - 提供反映会话状态的自定义元数据
 
-3. **Inconsistent with protocol patterns** - Other dynamic session properties use `session/update` notifications (commands, modes, plans), but metadata has no equivalent mechanism.
+3. **与协议模式不一致** - 其他动态会话属性使用 `session/update` 通知（命令、模式、计划），但元数据没有等效机制。
 
-The current workaround is for clients to:
+当前的解决方法是让客户端：
 
-- Maintain their own title mapping (doesn't persist or sync)
-- Only show static metadata from `session/list`
-- Have no way to receive agent-generated titles in real-time
+- 维护自己的标题映射（不会持久化或同步）
+- 只显示 `session/list` 中的静态元数据
+- 无法实时接收代理生成的标题
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-Add a new `session_info_update` variant to the existing `SessionUpdate` discriminated union that allows agents to notify clients about metadata changes. This update would:
+向现有的 `SessionUpdate` 可区分联合添加一个新的 `session_info_update` 变体，允许代理通知客户端元数据更改。此更新将：
 
-1. **Follow the existing `SessionUpdate` pattern**:
-   - Uses the same notification mechanism as `available_commands_update`, `current_mode_update`, etc.
-   - Sent via `session/update` method
-   - Agent-initiated, no request/response needed
+1. **遵循现有的 `SessionUpdate` 模式**：
+   - 使用与 `available_commands_update`、`current_mode_update` 等相同的通知机制
+   - 通过 `session/update` 方法发送
+   - 代理发起，不需要请求/响应
 
-2. **Align with `SessionInfo` structure**:
-   - Contains the same fields as `SessionInfo` from `session/list`
-   - All fields are optional (partial updates)
-   - Enables incremental metadata updates
-   - **Important**: `SessionInfoUpdate` must stay aligned with `SessionInfo` - when new fields are added to `SessionInfo`, they should also be added to `SessionInfoUpdate` as optional fields
+2. **与 `SessionInfo` 结构保持一致**：
+   - 包含与 `session/list` 中的 `SessionInfo` 相同的字段
+   - 所有字段都是可选的（部分更新）
+   - 支持增量元数据更新
+   - **重要**：`SessionInfoUpdate` 必须与 `SessionInfo` 保持一致——当新字段添加到 `SessionInfo` 时，它们也应该作为可选字段添加到 `SessionInfoUpdate`
 
-3. **Support common use cases**:
-   - Agent auto-generates title after first prompt
-   - Agent updates title as conversation context shifts
-   - Agent provides custom metadata for client features (tags, status, etc.)
-   - User explicitly requests title change (agent responds with update notification)
+3. **支持常见用例**：
+   - 代理在第一个提示后自动生成标题
+   - 代理随着对话上下文的变化更新标题
+   - 代理为客户端功能提供自定义元数据（标签、状态等）
+   - 用户明确请求标题更改（代理用更新通知响应）
 
-4. **Integrate seamlessly**:
-   - No new capability required (uses existing `session/update` mechanism)
-   - Compatible with `session/list` - metadata should persist and be reflected in list responses
-   - Works during active sessions
+4. **无缝集成**：
+   - 不需要新功能（使用现有的 `session/update` 机制）
+   - 与 `session/list` 兼容——元数据应该持久化并在列表响应中反映
+   - 在活动会话期间工作
 
-### Notification Structure
+### 通知结构
 
-The agent sends a `session/update` notification with `sessionUpdate: "session_info_update"`:
+代理发送带有 `sessionUpdate: "session_info_update"` 的 `session/update` 通知：
 
 ```json
 {
@@ -67,7 +67,7 @@ The agent sends a `session/update` notification with `sessionUpdate: "session_in
     "sessionId": "sess_abc123def456",
     "update": {
       "sessionUpdate": "session_info_update",
-      "title": "Implement user authentication",
+      "title": "实现用户身份验证",
       "_meta": {
         "tags": ["feature", "auth"],
         "priority": "high"
@@ -77,29 +77,29 @@ The agent sends a `session/update` notification with `sessionUpdate: "session_in
 }
 ```
 
-### SessionInfoUpdate Type
+### SessionInfoUpdate 类型
 
-The update type mirrors `SessionInfo` but with all fields optional:
+更新类型镜像 `SessionInfo`，但所有字段都是可选的：
 
 ```typescript
 {
   sessionUpdate: "session_info_update",
-  title?: string | null,           // Update or clear the title
-  updatedAt?: string | null,        // ISO 8601 timestamp (usually agent sets this)
-  _meta?: object | null             // Custom metadata (merged with existing)
+  title?: string | null,           // 更新或清除标题
+  updatedAt?: string | null,        // ISO 8601 时间戳（通常由代理设置）
+  _meta?: object | null             // 自定义元数据（与现有的合并）
 }
 ```
 
-**Note:** `sessionId` and `cwd` are NOT included since:
+**注意：** `sessionId` 和 `cwd` 不包括在内，因为：
 
-- `sessionId` is already in the notification's `params`
-- `cwd` is immutable and set during `session/new`
+- `sessionId` 已经在通知的 `params` 中
+- `cwd` 是不可变的，在 `session/new` 期间设置
 
-### Examples
+### 示例
 
-#### Update title and working directory metadata
+#### 更新标题和工作目录元数据
 
-After the user sends their first meaningful prompt, the agent can generate and send a title along with metadata about the working directory:
+在用户发送他们的第一个有意义的提示之后，代理可以生成并发送一个标题以及关于工作目录的元数据：
 
 ```json
 {
@@ -109,7 +109,7 @@ After the user sends their first meaningful prompt, the agent can generate and s
     "sessionId": "sess_abc123def456",
     "update": {
       "sessionUpdate": "session_info_update",
-      "title": "Debug authentication timeout",
+      "title": "调试身份验证超时",
       "_meta": {
         "projectName": "api-server",
         "branch": "main"
@@ -119,9 +119,9 @@ After the user sends their first meaningful prompt, the agent can generate and s
 }
 ```
 
-#### Update title as conversation evolves
+#### 随着对话发展更新标题
 
-As the conversation shifts focus:
+随着对话焦点转变：
 
 ```json
 {
@@ -131,61 +131,61 @@ As the conversation shifts focus:
     "sessionId": "sess_abc123def456",
     "update": {
       "sessionUpdate": "session_info_update",
-      "title": "Debug authentication timeout → Add retry logic"
+      "title": "调试身份验证超时 → 添加重试逻辑"
     }
   }
 }
 ```
 
-## Shiny future
+## 美好的未来
 
-Once this feature exists:
+> 一旦这个功能存在，事情将如何发展？
 
-1. **Dynamic session identification** - Agents can:
-   - Auto-generate meaningful titles from conversation content
-   - Update titles as conversations evolve
-   - Provide rich metadata for better organization
+1. **动态会话识别** - 代理可以：
+   - 从对话内容中自动生成有意义的标题
+   - 随着对话的发展更新标题
+   - 提供更好的组织的丰富元数据
 
-2. **Improved client UIs** - Clients can:
-   - Show real-time title updates in session lists
-   - Display session status, tags, or other metadata
-   - Update UI immediately without polling `session/list`
+2. **改进的客户端 UI** - 客户端可以：
+   - 在会话列表中显示实时标题更新
+   - 显示会话状态、标签或其他元数据
+   - 无需轮询 `session/list` 立即更新 UI
 
-3. **Consistent protocol patterns** - Session metadata updates work like other dynamic session properties (commands, modes), creating a unified model
+3. **一致的协议模式** - 会话元数据更新与其他动态会话属性（命令、模式）一样工作，创建统一模型
 
-4. **Bidirectional workflows** - Combined with a potential future request method:
-   - User renames session → client sends request → agent acknowledges with `session_info_update` notification
-   - Agent auto-generates title → sends `session_info_update` notification → client displays it
+4. **双向工作流** - 与潜在的未来请求方法结合：
+   - 用户重命名会话 → 客户端发送请求 → 代理用 `session_info_update` 通知确认
+   - 代理自动生成标题 → 发送 `session_info_update` 通知 → 客户端显示它
 
-5. **Enhanced use cases**:
-   - Session templates that auto-set titles and tags
-   - Progress indicators via `_meta`
-   - Integration with external tools via metadata
-   - Rich session browsing and filtering
+5. **增强的用例**：
+   - 自动设置标题和标签的会话模板
+   - 通过 `_meta` 进行进度指示器
+   - 通过元数据与外部工具集成
+   - 丰富的会话浏览和过滤
 
-## Implementation details and plan
+## 实施细节和计划
 
-### Phase 1: Schema Changes
+### 第 1 阶段：模式更改
 
-1. **Update `schema.unstable.json`**:
-   - Add `SessionInfoUpdate` type definition
-   - Add new variant to `SessionUpdate` oneOf array
-   - Align fields with `SessionInfo` but make all optional
+1. **更新 `schema.unstable.json`**：
+   - 添加 `SessionInfoUpdate` 类型定义
+   - 在 `SessionUpdate` oneOf 数组中添加新的变体
+   - 使字段与 `SessionInfo` 保持一致但都是可选的
 
 ```json
 {
   "SessionInfoUpdate": {
-    "description": "**UNSTABLE**\n\nThis capability is not part of the spec yet, and may be removed or changed at any point.\n\nUpdate to session metadata. All fields are optional to support partial updates.",
+    "description": "**不稳定**\n\n此功能尚未成为规范的一部分，可能会在任何时候被移除或更改。\n\n会话元数据的更新。所有字段都是可选的以支持部分更新。",
     "properties": {
       "_meta": {
-        "description": "Extension point for implementations"
+        "description": "实现的扩展点"
       },
       "title": {
-        "description": "Human-readable title for the session",
+        "description": "会话的人类可读标题",
         "type": ["string", "null"]
       },
       "updatedAt": {
-        "description": "ISO 8601 timestamp of last activity",
+        "description": "上次活动的 ISO 8601 时间戳",
         "type": ["string", "null"]
       }
     },
@@ -194,7 +194,7 @@ Once this feature exists:
 }
 ```
 
-Add to `SessionUpdate` oneOf:
+添加到 `SessionUpdate` oneOf：
 
 ```json
 {
@@ -203,7 +203,7 @@ Add to `SessionUpdate` oneOf:
       "$ref": "#/$defs/SessionInfoUpdate"
     }
   ],
-  "description": "**UNSTABLE**\n\nThis capability is not part of the spec yet, and may be removed or changed at any point.\n\nUpdate to session metadata",
+  "description": "**不稳定**\n\n此功能尚未成为规范的一部分，可能会在任何时候被移除或更改。\n\n会话元数据的更新",
   "properties": {
     "sessionUpdate": {
       "const": "session_info_update",
@@ -215,157 +215,157 @@ Add to `SessionUpdate` oneOf:
 }
 ```
 
-### Phase 2: Protocol Documentation
+### 第 2 阶段：协议文档
 
-2. **Create documentation** in `/docs/protocol/session-metadata.mdx`:
-   - Explain the notification mechanism
-   - Provide examples of common patterns
-   - Document merge semantics for `_meta`
-   - Clarify relationship with `session/list`
+2. **在 `/docs/protocol/session-metadata.mdx` 中创建文档**：
+   - 解释通知机制
+   - 提供常见模式的示例
+   - 记录 `_meta` 的合并语义
+   - 阐明与 `session/list` 的关系
 
-3. **Update existing docs**:
-   - Reference in `/docs/protocol/session-setup.mdx`
-   - Add to `/docs/protocol/prompt-turn.mdx` session update section
+3. **更新现有文档**：
+   - 在 `/docs/protocol/session-setup.mdx` 中引用
+   - 添加到 `/docs/protocol/prompt-turn.mdx` 会话更新部分
 
-### Phase 3: SDK Implementation
+### 第 3 阶段：SDK 实施
 
-4. **Implement in Rust SDK**:
-   - Add `SessionInfoUpdate` struct
-   - Add variant to `SessionUpdate` enum
-   - Update notification handling in agent and client traits
-   - Add helper methods for common patterns
+4. **在 Rust SDK 中实现**：
+   - 添加 `SessionInfoUpdate` 结构体
+   - 添加 `SessionUpdate` 枚举中的变体
+   - 更新代理和客户端特征中的通知处理
+   - 为常见模式添加辅助方法
 
-5. **Implement in TypeScript SDK** (if applicable):
-   - Add TypeScript types
-   - Update notification handlers
-   - Add helper methods
+5. **在 TypeScript SDK 中实现**（如果适用）：
+   - 添加 TypeScript 类型
+   - 更新通知处理程序
+   - 添加辅助方法
 
-### Phase 4: Example Implementation
+### 第 4 阶段：示例实施
 
-6. **Update example agents**:
-   - Demonstrate auto-generating title from first prompt
-   - Show updating metadata during session
-   - Example of using `_meta` for custom fields
+6. **更新示例代理**：
+   - 演示从第一个提示自动生成标题
+   - 显示会话期间的元数据更新
+   - 使用 `_meta` 进行自定义字段的示例
 
-### Compatibility Considerations
+### 兼容性考虑
 
-- **Fully backward compatible**: This adds a new notification variant to an existing mechanism
-- **No breaking changes**: Existing agents and clients continue working
-- **Graceful degradation**: Clients that don't handle this notification simply ignore it
-- **No new capability needed**: Uses existing `session/update` infrastructure
+- **完全向后兼容**：这向现有机制添加了一个新的通知变体
+- **没有破坏性更改**：现有代理和客户端继续工作
+- **优雅降级**：不处理此通知的客户端只是忽略它
+- **不需要新功能**：使用现有的 `session/update` 基础设施
 
-### Design Decisions
+### 设计决策
 
-**Why notification instead of request/response?**
+**为什么是通知而不是请求/响应？**
 
-- Consistent with existing `SessionUpdate` patterns (`available_commands_update`, `current_mode_update`)
-- Agents initiate updates based on conversation state
-- Simpler than bidirectional request/response
-- Enables real-time updates without polling
+- 与现有的 `SessionUpdate` 模式（`available_commands_update`、`current_mode_update`）一致
+- 代理根据会话状态发起更新
+- 比双向请求/响应更简单
+- 支持实时更新而不需要轮询
 
-**Why make all fields optional?**
+**为什么所有字段都是可选的？**
 
-- Allows partial updates (only update what changed)
-- More efficient - don't resend unchanged data
-- Flexible for different use cases
-- Mirrors partial update patterns in other protocols
+- 允许部分更新（只更新改变的）
+- 更高效——不重新发送未更改的数据
+- 更灵活的用例
+- 镜像其他协议中的部分更新模式
 
-**Why not include `sessionId` and `cwd` in the update?**
+**为什么不在更新中包含 `sessionId` 和 `cwd`？**
 
-- `sessionId` is already in the notification params
-- `cwd` is immutable (set in `session/new`, never changes)
-- Keeps update focused on mutable metadata
+- `sessionId` 已经在通知 params 中
+- `cwd` 是不可变的（在 `session/new` 中设置，永不改变）
+- 保持更新专注于可变的元数据
 
-**How do `_meta` updates work?**
+**`_meta` 更新如何工作？**
 
-- **Merge semantics**: New `_meta` fields are merged with existing ones
-- To clear a specific field: `"_meta": { "fieldName": null }`
-- To clear all custom metadata: `"_meta": null`
+- **合并语义**：新的 `_meta` 字段与现有的合并
+- 要清除特定字段：`"_meta": { "fieldName": null }`
+- 要清除所有自定义元数据：`"_meta": null`
 
-### Security Considerations
+### 安全考虑
 
-- **No additional security concerns**: Uses existing session authentication
-- **Input validation**:
-  - Agents should validate title length (recommend 500 chars max)
-  - Sanitize metadata to prevent injection
-  - Validate `_meta` structure based on agent requirements
-- **Resource limits**: Agents should limit update frequency and metadata size
+- **没有额外的安全问题**：使用现有的会话身份验证
+- **输入验证**：
+  - 代理应该验证标题长度（建议最多 500 个字符）
+  - 清理元数据以防止注入
+  - 根据代理要求验证 `_meta` 结构
+- **资源限制**：代理应该限制更新频率和元数据大小
 
-## Frequently asked questions
+## 常见问题
 
-### Why not create a new endpoint like `session/update-metadata`?
+### 为什么不像 `session/update-metadata` 那样创建一个新的端点？
 
-The notification pattern is more appropriate because:
+通知模式更合适，因为：
 
-1. **Consistency**: Other dynamic session properties (commands, modes) use notifications
-2. **Agent-initiated**: Agents typically generate titles from conversation context
-3. **Real-time**: No request/response overhead, updates flow naturally
-4. **Simpler**: Reuses existing `session/update` infrastructure
+1. **一致性**：其他动态会话属性（命令、模式）使用通知
+2. **代理发起**：代理通常从对话上下文生成标题
+3. **实时**：没有请求/响应开销，更新自然流动
+4. **更简单**：重用现有的 `session/update` 基础设施
 
-### How does this work with `session/list`?
+### 这与 `session/list` 如何工作？
 
-The updated metadata should persist and be reflected in subsequent `session/list` calls. The notification provides real-time updates to connected clients, while `session/list` provides the current state for discovery.
+更新的元数据应该持久化并在后续的 `session/list` 调用中反映。通知为连接的客户端提供实时更新，而 `session/list` 提供发现的当前状态。
 
-### Can clients trigger title updates?
+### 客户端可以触发标题更新吗？
 
-This RFD covers agent-initiated updates. Client-initiated updates could work by:
+这个 RFD 涵盖代理发起的更新。客户端发起的更新可以通过以下方式工作：
 
-1. Client sends a prompt asking to rename session
-2. Agent updates its internal state
-3. Agent sends `session_info_update` notification
-4. Client receives and displays the update
+1. 客户端发送要求重命名会话的提示
+2. 代理更新其内部状态
+3. 代理发送 `session_info_update` 通知
+4. 客户端接收并显示更新
 
-A future RFD could add explicit request/response for this if needed.
+如果需要，可以在未来的 RFD 中添加显式的请求/响应。
 
-### What if multiple updates are sent in quick succession?
+### 如果快速连续发送多个更新怎么办？
 
-Clients should apply updates incrementally in order. Each notification represents a delta, not a full replacement (except for fields explicitly set to `null`).
+客户端应该按顺序增量应用更新。每个通知代表一个增量，而不是完全替换（除了明确设置为 `null` 的字段）。
 
-### Should `updatedAt` be automatically set by the agent?
+### 代理是否应该自动设置 `updatedAt`？
 
-Yes, typically the agent should update this timestamp when any session activity occurs, not just when metadata changes. However, including it in `session_info_update` allows agents to explicitly control it if needed.
+是的，通常代理应该在发生任何会话活动时更新此时间戳，而不仅仅是元数据更改时。然而，在 `session_info_update` 中包含它允许代理在需要时明确控制它。
 
-### Do agents need a new capability for this?
+### 代理需要新功能吗？
 
-No. All agents that support `session/update` notifications can send this variant. Clients that don't recognize it will ignore it (standard JSON-RPC behavior).
+不需要。支持 `session/update` 通知的所有代理都可以发送此变体。不识别它的客户端会忽略它（标准的 JSON-RPC 行为）。
 
-### How does this interact with `session/fork`?
+### 这如何与 `session/fork` 交互？
 
-When forking, the parent session's metadata could be copied (implementation choice). The forked session would have its own `sessionId` and could receive separate `session_info_update` notifications.
+在分叉时，父会话的元数据可以被复制（实现选择）。分叉的会话将有自己的 `sessionId`，并可以接收单独的 `session_info_update` 通知。
 
-### What happens if title is too long?
+### 如果标题太长怎么办？
 
-This is an implementation choice. Agents MAY:
+这是实现选择。代理**可以**：
 
-- Truncate long titles
-- Reject updates (though this is a notification, so no error response)
-- Set a reasonable limit (e.g., 500 characters)
+- 截断长标题
+- 拒绝更新（尽管这是通知，所以没有错误响应）
+- 设置合理的限制（例如，500 个字符）
 
-Clients SHOULD handle long titles gracefully (truncate in UI, show tooltip, etc.).
+客户端**应该**优雅地处理长标题（在 UI 中截断，显示工具提示等）。
 
-### Can `_meta` have nested objects?
+### `_meta` 可以有嵌套对象吗？
 
-Yes, `_meta` is an arbitrary object. Agents define its structure. The merge semantics apply recursively - nested objects are merged, not replaced entirely.
+是的，`_meta` 是一个任意对象。代理定义其结构。合并语义递归应用——嵌套对象被合并，而不是完全替换。
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-Several alternatives were considered:
+考虑了几种替代方案：
 
-1. **Add a new request/response endpoint (`session/update-metadata`)** - This would be inconsistent with how other dynamic session properties (commands, modes) are handled. The notification pattern is more appropriate for agent-initiated updates.
+1. **添加一个新的请求/响应端点（`session/update-metadata`）**——这将与如何处理其他动态会话属性（命令、模式）不一致。通知模式对于代理发起的更新更合适。
 
-2. **Add title parameter to `session/new`** - Only allows setting title at creation time, doesn't support dynamic updates as the conversation evolves.
+2. **在 `session/new` 中添加标题参数**——只允许在创建时设置标题，不支持随着对话发展的动态更新。
 
-3. **Client-side only metadata tracking** - Doesn't work across devices, can get out of sync, and duplicates storage. This is the current workaround and has significant limitations.
+3. **仅客户端元数据跟踪**——无法跨设备工作，可能不同步，并重复存储。这是当前的解决方法，有重大限制。
 
-4. **Generic `session/update` request for all properties** - Could conflict with immutable properties (sessionId, cwd) and has unclear semantics about what can be updated.
+4. **用于所有属性的通用 `session/update` 请求**——可能与不可变属性（sessionId、cwd）冲突，并且不清楚什么可以更新。
 
-The proposed notification-based approach:
+提议的基于通知的方法：
 
-- **Consistent** with existing protocol patterns
-- **Flexible** for both agent-initiated and user-initiated updates
-- **Simple** to implement and understand
-- **Extensible** via `_meta` field
+- **一致**于现有协议模式
+- **灵活**适用于代理发起和用户发起的更新
+- **简单**实现和理解
+- **可扩展**通过 `_meta` 字段
 
-## Revision history
+## 修订历史
 
-- **2025-11-28**: Initial draft proposal
+- **2025-11-28**：初始提案草稿

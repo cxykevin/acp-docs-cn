@@ -1,97 +1,97 @@
 ---
-title: "Authentication Methods"
+title: "身份验证方法"
 ---
 
-Author(s): [anna239](https://github.com/anna239)
+作者：[anna239](https://github.com/anna239)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-I suggest adding more information about auth methods that agent supports, which will allow clients to draw more appropriate UI.
+我建议添加有关代理支持的身份验证方法的更多信息，这将允许客户端绘制更合适的 UI。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-Agents have different ways of authenticating users: env vars with api keys, running a command like `<agent_name> login`, some just open a browser and use oauth.
-[AuthMethod](https://agentclientprotocol.com/protocol/schema#authmethod) does not really tell the client what should be done to authenticate. This means we can't show the user a control for entering key if an agent supports auth through env var.
+代理有不同的用户身份验证方式：带有 api 密钥的环境变量，运行像 `<agent_name> login` 这样的命令，有些只是打开浏览器并使用 oauth。
+[AuthMethod](https://agentclientprotocol.com/protocol/schema#authmethod) 并没有真正告诉客户端应该做什么来身份验证。这意味着我们无法向用户显示用于输入密钥的控件（如果代理支持通过环境变量进行身份验证）。
 
-Very few agents can authenticate fully on their own without user input, so agents with ACP auth support are limited in the methods they can offer, or require manual setup before being run as an ACP agent.
+很少有代理可以完全自行进行身份验证而无需用户输入，因此支持 ACP 身份验证的代理在它们可以提供的方法方面受到限制，或者需要在作为 ACP 代理运行之前进行手动设置。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-We can add addition types of AuthMethods, to provide clients with additional information so they can assist in the login process.
+我们可以添加 AuthMethods 的其他类型，为客户端提供额外信息，以便它们可以帮助登录过程。
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-It will be easier for end-users to start using an agent from inside the IDE as auth process will be more straightforward
+从 IDE 内部开始使用代理对最终用户来说会更容易，因为身份验证过程将更加直接
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。我的详细实施计划是什么？
 
-I suggest adding following auth types:
+我建议添加以下身份验证类型：
 
-1. Agent auth
+1. 代理身份验证
 
-Same as what there is now – agent handles the auth itself, this should be a default type if no type is provided for backward compatibility
+与现有的相同——代理自己处理身份验证，如果未提供类型，这应该是默认类型以保持向后兼容
 
 ```json
 {
   "id": "123",
   "name": "Agent",
-  "description": "Authenticate through agent",
-  "type": "agent" // Optional/default value
+  "description": "通过代理进行身份验证",
+  "type": "agent" // 可选/默认值
 }
 ```
 
-2. Env variable
+2. 环境变量
 
-A user can enter a key and a client will pass it to the agent as an env variable
+用户可以输入密钥，客户端会将其作为环境变量传递给代理
 
 ```json
 {
   "id": "123",
   "name": "OpenAI api key",
-  "description": "Provide your key",
+  "description": "提供您的密钥",
   "type": "env_var",
   "varName": "OPEN_AI_KEY",
-  "link": "OPTIONAL link to a page where user can get their key"
+  "link": "可选链接到用户可以获取密钥的页面"
 }
 ```
 
-Since this would need to be supplied to the agent when the process is started, the client can check if it already passed such an env variable to the process, in which case the user can click on the button and the agent will read the already available key.
+由于这需要在进程启动时提供给代理，客户端可以检查是否已经向进程传递了这样的环境变量，在这种情况下，用户可以单击按钮，代理将读取已经可用的密钥。
 
-Otherwise, when the user clicks the button, the client could restart the agent process with the desired env variable, and then automatically send the authenticate message with the correct id to sign in for the user.
+否则，当用户单击按钮时，客户端可以重新启动带有所需环境变量的代理进程，然后自动发送带有正确 ID 的身份验证消息以代表用户登录。
 
-3. Terminal Auth
+3. 终端身份验证
 
-There have been experiments for a "terminal-auth" experience as a fallback. This requires the client to be able to run an interactive terminal for the user to login via a TUI.
+已经有关于"终端身份验证"体验的实验作为后备。这需要客户端能够运行交互式终端，让用户通过 TUI 登录。
 
 ```json
 {
   "id": "123",
-  "name": "Run in terminal",
-  "description": "Setup Label",
+  "name": "在终端中运行",
+  "description": "设置标签",
   "type": "terminal",
   "args": ["--setup"],
   "env": { "VAR1": "value1", "VAR2": "value2" }
 }
 ```
 
-The `command` cannot be specified, the client will invoke the exact same binary with the exact same setup. The agent can supply additional arguments and environment variables as necessary. These will be supplied in **addition** to any args/env supplied by default when the server is started. So agents will need to have a way to kickoff their interactive login flow even if normal acp commands/arguments are supplied as well.
+不能指定 `command`；客户端将使用完全相同的设置调用完全相同的二进制文件。代理可以根据需要提供额外的参数和环境变量。这些将**额外**提供在服务器启动时默认提供的任何参数/环境变量。因此，代理需要有一种方式来启动它们的交互式登录流程，即使提供了正常的 acp 命令/参数也是如此。
 
-This is so that the agent doesn't need to know about the environment it is running in. It can't know the absolute path necessarily, and shouldn't be able to supply other commands or programs to minimize security issues.
+这样代理就不需要知道它运行的环境。它不一定知道绝对路径，并且不应该能够提供其他命令或程序以最大程度地减少安全问题。
 
 ### AuthErrors
 
-It might be useful to include a list of AuthMethod ids to the AUTH_REQUIRED JsonRpc error. Why do we need this if they're already shared during `initialize`:
-All supported auth methods are shared during `initialize`. When user starts a session, they've already selected a model, which can narrow down a list of options.
+将 AuthMethod 列表包含在 AUTH_REQUIRED JsonRpc 错误中可能很有用。如果它们已经在 `initialize` 中共享，为什么我们需要这个：
+所有支持的身份验证方法在 `initialize` 期间共享。当用户启动会话时，他们已经选择了一个模型，这可以缩小选项列表。
 
 ```json
 {
@@ -99,30 +99,30 @@ All supported auth methods are shared during `initialize`. When user starts a se
   "id": 2,
   "error": {
     "code": -32000,
-    "message": "Authentication required",
+    "message": "需要身份验证",
     "authMethods": [
       {
         "id": "chatgpt",
-        "name": "Login with ChatGPT",
-        "description": "Use your ChatGPT login with Codex CLI (requires a paid ChatGPT subscription)"
+        "name": "使用 ChatGPT 登录",
+        "description": "使用您的 ChatGPT 登录 Codex CLI（需要付费的 ChatGPT 订阅）"
       }
     ]
   }
 }
 ```
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-An alternative approach would be to include this information to an agent's declaration making it more static, see [Registry RFD](https://github.com/agentclientprotocol/agent-client-protocol/pull/289)
+一种替代方法是将此信息包含在代理的声明中，使其更加静态，请参阅 [Registry RFD](https://github.com/agentclientprotocol/agent-client-protocol/pull/289)
 
-There is also an alternative to adding a separate `elicitation` capability, which is to create a separate auth type for this. Then the client can decide themselves if they support it or not.
+还有一种添加单独的 `elicitation` 功能的替代方法，就是为此创建一个单独的身份验证类型。然后客户端可以自己决定是否支持它。
 
-## Revision history
+## 修订历史
 
-There was a part about elicitations https://github.com/agentclientprotocol/agent-client-protocol/blob/939ef116a1b14016e4e3808b8764237250afa253/docs/rfds/auth.mdx removed it for now, will move to a separate rfd
+有关于征求建议的部分 https://github.com/agentclientprotocol/agent-client-protocol/blob/939ef116a1b14016e4e3808b8764237250afa253/docs/rfds/auth.mdx 已删除，稍后将移至单独的 rfd
 
-- 2026-01-14: Updates based on Core Maintainer discussion
+- 2026-01-14：根据核心维护者讨论进行更新

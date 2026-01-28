@@ -1,196 +1,200 @@
 ---
-title: "Request Cancellation Mechanism"
+title: "请求取消机制"
 ---
 
-- Author(s): [Artem Bukhonov](https://github.com/nerzhulart)
-- Champion: [@benbrandt](https://github.com/benbrandt)
+- 作者：[Artem Bukhonov](https://github.com/nerzhulart)
+- 支持者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-Introduce a standardized per-request cancellation mechanism for the Agent Client Protocol, inspired by the [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#cancelRequest), to enable a more granular cancellation of requests where individual JSON-RPC requests can be cancelled one by one.
+为代理客户端协议引入标准化的按请求取消机制，受 [语言服务器协议 (LSP)](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#cancelRequest) 启发，以实现更细粒度的取消，其中单个 JSON-RPC 请求可以逐一取消。
 
-## Status quo
+## 现状
 
-The JSON-RPC specification doesn't define any standard mechanism for request cancellation and leaves it up to the implementation. Currently, ACP has some ad-hoc cancellation mechanisms for specific features (like prompt turn cancellation via `session/cancel`), but lacks a general-purpose, per-request cancellation mechanism.
+JSON-RPC 规范没有定义任何标准的请求取消机制，将其留给实现。目前，ACP 对特定功能有一些临时取消机制（如通过 `session/cancel` 取消提示轮次），但缺乏通用的、按请求的取消机制。
 
-This creates the following inconveniences:
+这造成了以下不便：
 
-- cancellation should be handled for each feature separately
-- some languages that support handy cancellation mechanisms (C#, Kotlin, etc.) can't implement general-purpose request cancellation using ACP low-level machinery, and rather developers should manually call per-feature cancellation methods
+- 取消应该为每个功能单独处理
+- 支持便捷取消机制的语言（C#、Kotlin 等）无法使用 ACP 底层机制实现通用的按请求取消，而应该手动调用按功能取消方法
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-Implement an **optional** `$/cancel_request` notification method (inspired by the Language Server Protocol) to both Agent and Client that uses JSON-RPC 2.0 notification format, allowing either party (client or agent) to cancel any outstanding request by its ID.
+实现一个**可选的** `$/cancel_request` 通知方法（受语言服务器协议启发）给代理和客户端，使用 JSON-RPC 2.0 通知格式，允许任何一方（客户端或代理）通过其 ID 取消任何未完成的请求。
 
-The mechanism will be:
+该机制将是：
 
-- **Optional**: Not all implementations may support this feature, but it is recommended for those that do.
-- **Flexible**: Provides two response options when cancellation is received:
-  1. An error response with the standard cancellation error code (-32800)
-  2. A valid response with partial or cancelled data (when meaningful partial results exist)
+- **可选的**：并非所有实现都支持此功能，但建议支持。
+- **灵活的**：提供两种取消时的响应选项：
+  1. 带标准取消错误代码（-32800）的错误响应
+  2. 带部分或取消数据的有效响应（当有意义的 parcial 结果存在时）
 
-This approach balances flexibility with standardization, allowing implementations to opt-in to cancellation support while providing predictable behavior when enabled.
+这种方法在灵活性与标准化之间取得平衡，允许实现选择加入取消支持，同时在启用时提供可预测的行为。
 
-## Shiny future
+## 美好的未来
 
-Once implemented, this enables:
+> 一旦这个功能存在，事情将如何发展？
 
-- **SDK integration layer**: Default mechanism that ACP SDKs can automatically wire to native language cancellation (C# CancellationToken, Kotlin Job, Go context.Context, JavaScript AbortController, etc.)
-- Individual JSON-RPC request cancellation without affecting other concurrent requests
-- Universal fallback for any request when feature-specific cancellation methods don't exist
-- Consistent cancellation behavior from both external `$/cancel_request` and internal cancellation triggers
-- Standard error response (`-32800`) or partial results when requests are cancelled regardless of cancellation source
+实施后，这将启用：
 
-In a future version, we could potentially deprecate the `session/cancel` notification in favor of the more general approach, as it would still provide the same functionality but with more flexibility and consistency.
+- **SDK 集成层**：ACP SDK 可以自动连接到本地语言取消的默认机制（C# CancellationToken、Kotlin Job、Go context.Context、JavaScript AbortController 等）
+- 单个 JSON-RPC 请求取消而不影响其他并发请求
+- 当功能特定的取消方法不存在时的通用回退
+- 来自外部 `$/cancel_request` 和内部取消触发器的一致取消行为
+- 无论取消来源如何，标准错误响应（`-32800`）或部分结果
 
-## Implementation details and plan
+在未来的版本中，我们可能会弃用 `$/cancel_request` 通知，转而使用更通用的方法，因为它仍然提供相同的功能，但具有更大的灵活性和一致性。
 
-### Protocol Changes
+## 实施细节和计划
 
-#### Cancellation Method
+### 协议更改
 
-Add the `$/cancel_request` notification method to the JSON-RPC protocol:
+#### 取消方法
+
+将 `$/cancel_request` 通知方法添加到 JSON-RPC 协议：
 
 ```typescript
 interface CancelNotification {
   method: "$/cancel_request";
   params: {
-    requestId: string | number; // ID of request to cancel
+    requestId: string | number; // 要取消的请求的 ID
   };
 }
 ```
 
-### Cancellation Behavior
+### 取消行为
 
-Either party can send `$/cancel_request` to cancel requests. Notifications whose methods start with '$/' are messages which are protocol implementation dependent and might not be implementable in all clients or agents. For example if the implementation uses a single threaded synchronous programming language then there is little it can do to react to a `$/cancel_request` notification. If an agent or client receives notifications starting with '$/' it is free to ignore the notification.
+任何一方都可以发送 `$/cancel_request` 来取消请求。以 '$/' 开头的通知方法是协议实现相关的消息，可能无法在所有客户端或代理中实现。例如，如果实现使用单线程同步编程语言，那么它对 `$/cancel_request` 通知几乎无能为力。如果代理或客户端收到以 '$/' 开头的通知，它可以自由地忽略该通知。
 
-The **receiving party** is **NOT** required to:
+**接收方**：
 
-- Perform special handling for unsupported cancellation requests
-- Return custom errors for unsupported `$/cancel_request` notifications
+- 对不支持的取消请求执行特殊处理
+- 返回不支持的 `$/cancel_request` 通知的自定义错误
 
-#### Cancellation Processing
+#### 取消处理
 
-When a `$/cancel_request` notification is received by a supporting implementation, it:
+当支持实现收到 `$/cancel_request` 通知时，它：
 
-- **MUST** cancel the corresponding request activity and all nested activities related to that request
-- **MAY** finish sending any pending notifications before responding
-- **MUST** send one of these responses for the original request:
-  - A valid response with appropriate data (such as partial results or cancellation marker)
-  - An error response with code [`-32800` (Request Cancelled)](./schema#errorcode)
+- **必须**取消相应请求活动及其所有嵌套活动
+- **可以**在响应之前完成发送任何待处理通知
+- **必须**为原始请求发送以下响应之一：
+  - 带适当数据（如部分结果或取消标记）的有效响应
+  - 带代码 [`-32800`（请求已取消）](./schema#errorcode) 的错误响应
 
-#### Internal Cancellation
+#### 内部取消
 
-Requests can also be cancelled internally by the executing party without receiving `$/cancel_request`:
+请求也可以由执行方在未收到 `$/cancel_request` 的情况下在内部取消：
 
-- **Client-side examples**: User closes IDE, switches to different project, file becomes unavailable
-- **Agent-side examples**: LLM context limit reached, internal timeout, resource constraints
+- **客户端示例**：用户关闭 IDE、切换到不同的项目、文件变得不可用
+- **代理示例**：达到 LLM 上下文限制、内部超时、资源限制
 
-When internal cancellation occurs, the executing party **SHOULD**:
+当发生内部取消时，执行方**应该**：
 
-1. Send the same `-32800` (Cancelled) error response as if `$/cancel_request` was received
-2. Ensure consistent behavior regardless of cancellation source
+1. 发送与收到 `$/cancel_request` 时相同的 `-32800`（已取消）错误响应
+2. 确保无论取消来源如何，行为都一致
 
-### Error Code
+### 错误代码
 
-Add standard JSON-RPC error code `-32800` for cancelled requests:
+为取消的请求添加标准 JSON-RPC 错误代码 `-32800`：
 
-- Code: `-32800`
-- Message: "Request cancelled"
-- Meaning: Execution of the method was aborted either due to a cancellation request from the caller or because of resource constraints or shutdown.
+- 代码：`-32800`
+- 消息："请求已取消"
+- 含义：方法的执行因调用者的取消请求或资源限制/关闭而中止
 
-## Frequently asked questions
+## 常见问题
 
-### What alternative approaches did you consider, and why did you settle on this one?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-The core need is to add **granular cancellation** as a general mechanism for individual JSON-RPC requests, while **feature-specific cancellation methods** (like `session/cancel`) remain useful for cases requiring additional domain semantics.
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-We selected the **LSP-style `$/cancel_request`** approach because:
+核心需求是添加**细粒度取消**作为单个 JSON-RPC 请求的通用机制，而**功能特定的取消方法**（如 `session/cancel`）对于需要额外领域语义的案例仍然有用。
 
-- Serves as a **default cancellation layer** that SDK implementations can easily map to native language cancellation mechanisms
-- Proven pattern familiar to developers from LSP ecosystem
-- Works across all JSON-RPC transports (HTTP, WebSocket, stdio, pipes)
-- Provides universal fallback when feature-specific cancellation doesn't exist
-- Complements existing feature-specific methods rather than replacing them
+我们选择**LSP 风格的 `$/cancel_request`**方法，因为：
 
-### How does this relate to existing cancellation mechanisms like `session/cancel`?
+- 作为**默认取消层**，SDK 实现可以轻松映射到本地语言取消机制
+- 来自 LSP 生态系统的开发者熟悉的经过验证的模式
+- 适用于所有 JSON-RPC 传输（HTTP、WebSocket、stdio、管道）
+- 当功能特定的取消不存在时提供通用回退
+- 补充而不是替换现有的功能特定方法
 
-The `$/cancel_request` mechanism is complementary to feature-specific cancellation:
+### 这与现有的取消机制（如 `session/cancel`）有什么关系？
 
-- `$/cancel_request`: Generic cancellation for any JSON-RPC request by ID
-- `session/cancel`: Feature-specific cancellation with additional semantics (e.g., cancels entire prompt turn context, triggers specific cleanup logic)
+`$/cancel_request` 机制与功能特定的取消是互补的：
 
-Both mechanisms serve different purposes:
+- `$/cancel_request`：任何 JSON-RPC 请求的通用按 ID 取消
+- `session/cancel`：具有额外语义的功能特定取消（例如，取消整个提示轮次上下文，触发特定的清理逻辑）
 
-**Feature-specific methods** like `session/cancel` provide:
+两种机制服务于不同的目的：
 
-- Domain-specific semantics and behavior
-- Structured cleanup for complex operations
-- Context-aware cancellation logic
+**功能特定方法**如 `session/cancel` 提供：
 
-**Generic `$/cancel_request`** provides:
+- 领域特定语义和行为
+- 复杂操作的结构化清理
+- 上下文感知的取消逻辑
 
-- Default cancellation layer that bridges programming language cancellation mechanisms (C# CancellationToken, Kotlin Job, Go context.Context, etc.) with ACP
-- Universal fallback for any request when no feature-specific method exists
-- Simple ID-based targeting for SDK convenience
-- Standardized error responses
+**通用的 `$/cancel_request`**提供：
 
-Implementations can use both: feature-specific methods for rich semantics, and `$/cancel_request` for simple per-request cancellation.
+- 将编程语言取消机制（C# CancellationToken、Kotlin Job、Go context.Context 等）与 ACP 连接的默认取消层
+- 当不存在功能特定方法时，任何请求的通用回退
+- 便于 SDK 的简单基于 ID 的定位
+- 标准化的错误响应
 
-Note: it is possible that `session/cancel` could be replaced by the more generic `$/cancel_request` in future versions of the protocol.
+实现可以使用两者：功能特定方法用于丰富的语义，`$/cancel_request` 用于简单的按请求取消。
 
-#### Example: Cascading Cancellation Flow
+注意：在未来版本的协议中，`session/cancel` 可能被更通用的 `$/cancel_request` 取代。
+
+#### 级联取消流示例
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Agent
 
-    Note over Client,Agent: 1. Session prompt in progress
-    Client->>Agent: session/prompt (id=1, "Analyze file X")
-    Agent-->>Client: session/update (agent started processing)
+    Note over Client,Agent: 1. 会话提示进行中
+    Client->>Agent: session/prompt (id=1, "分析文件 X")
+    Agent-->>Client: session/update（代理开始处理）
 
-    Note over Client,Agent: 2. Agent makes concurrent requests
+    Note over Client,Agent: 2. 代理发出并发请求
     Agent->>Client: terminal/create (id=2, "grep pattern file.txt")
-    Agent->>Client: session/request_permission (id=3, "read sensitive file")
+    Agent->>Client: session/request_permission (id=3, "读取敏感文件")
 
-    Note over Client,Agent: 3. Client cancels the prompt turn
+    Note over Client,Agent: 3. 客户端取消提示轮次
     Client->>Agent: session/cancel (sessionId)
 
-    Note over Client,Agent: 4. Agent cascades cancellation internally
-    Agent->>Client: $/cancel_request (id=2) [terminal request]
-  Agent->>Client: $/cancel_request (id=3) [permission request]
+    Note over Client,Agent: 4. 代理在内部级联取消
+    Agent->>Client: $/cancel_request (id=2) [终端请求]
+  Agent->>Client: $/cancel_request (id=3) [权限请求]
 
-    Note over Client,Agent: 5. Client confirms individual cancellations
-    Client->>Agent: response to id=2 (error -32800 "Cancelled")
-    Client->>Agent: response to id=3 (error -32800 "Cancelled")
+    Note over Client,Agent: 5. 客户端确认各个取消
+    Client->>Agent: 对 id=2 的响应（错误 -32800 "已取消"）
+    Client->>Agent: 对 id=3 的响应（错误 -32800 "已取消"）
 
-    Note over Client,Agent: 6. Agent completes prompt cancellation
-    Agent->>Client: response to id=1 (stopReason: "cancelled")
+    Note over Client,Agent: 6. 代理完成提示取消
+    Agent->>Client: 对 id=1 的响应（stopReason: "cancelled"）
 ```
 
-### What happens if a request completes before the cancellation is processed?
+### 如果请求在取消处理之前完成怎么办？
 
-If a request completes normally before the cancellation notification is processed, the implementation should:
+如果请求在取消通知被处理之前正常完成，实现应该：
 
-1. Send the normal response (not a cancellation error)
-2. Ignore the subsequent cancellation notification for that request ID
+1. 发送正常响应（不是取消错误）
+2. 忽略该请求 ID 的后续取消通知
 
-This ensures clients always receive meaningful responses and prevents race conditions.
+这确保客户端始终收到有意义的响应并防止竞争条件。
 
-### How should implementations handle cascading cancellation?
+### 实现应该如何处理级联取消？
 
-When a request is cancelled, implementations should:
+当请求被取消时，实现应该：
 
-1. Cancel the primary request activity
-2. Propagate cancellation to any nested/child requests
-3. Clean up resources associated with the entire request tree
-4. Send cancellation responses for all affected requests
+1. 取消主要请求活动
+2. 将取消传播到任何嵌套/子请求
+3. 清理与整个请求树关联的资源
+4. 为所有受影响的请求发送取消响应
 
-This ensures complete cleanup and prevents resource leaks.
+这确保了完整的清理并防止资源泄漏。
 
-## Revision history
+## 修订历史
 
-- 2025-11-13: Initial version converted from PR #183
-- 2025-12-05: Updated with current implementation.
-- 2025-12-09: Mirror LSP behavior.
+- 2025-11-13：从 PR #183 转换的初始版本
+- 2025-12-05：更新为当前实现。
+- 2025-12-09：镜像 LSP 行为。

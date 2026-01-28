@@ -1,52 +1,49 @@
 ---
-title: "Forking of existing sessions"
+title: "现有会话的分叉"
 ---
 
-- Author(s): [@josevalim](https://github.com/josevalim)
-- Champion: [@benbrandt](https://github.com/benbrandt)
+- 作者：[@josevalim](https://github.com/josevalim)
+- 支持者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
-We propose adding the ability to "fork" a new session based on an existing one.
-This will allow us to use the current conversation as context to generate pull
-request descriptions, summaries, etc. without polluting the user history.
+我们提议添加基于现有会话"分叉"新会话的能力。
+这将允许我们使用当前对话作为上下文来生成拉取
+请求描述、摘要等，而不会污染用户历史记录。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-Imagine we want to summarize the current conversation to use it in a future chat. If we send a message
-asking for the summary, it will become part of its context, affecting future user interactions.
-Therefore we want to be able to fork a session, issue additional messages, and then close the fork.
+想象一下，我们想要总结当前对话以用于未来的聊天。如果我们发送一条消息
+要求摘要，它将成为其上下文的一部分，影响未来的用户交互。
+因此，我们希望能够分叉会话、发出额外消息，然后关闭分叉。
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
-To add a "session/fork" method.
+添加一个 "session/fork" 方法。
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-We will be able to implement functionality that requires using the current chat
-without polluting its history, ranging from summaries to potentially subagents.
+我们将能够实现需要使用当前聊天而不会污染其历史的功能，范围从摘要到潜在的子代理。
 
-I can also see this feature being extended in the future to support an optional
-message ID, so the fork happens at a specific message, allowing clients to implement
-functionality like editing previous messages and similar.
+我也可以看到此功能在将来扩展以支持可选
+消息 ID，因此分叉发生在特定消息上，允许客户端实现
+类似编辑以前消息的功能。
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
-We propose to add a new "session/fork" method. Agents must declare this option is
-available by returning `session: { fork : {} }` in its capabilities. The object is reserved
-to declare future capabilities, such as forking from a specific message, a tool call, or similar.
+我们提议添加一个新的 "session/fork" 方法。代理必须通过在其功能中返回 `session: { fork : {} }` 来声明此选项可用。该对象保留用于声明未来功能，例如从特定消息、工具调用或类似内容分叉。
 
-Then the client would be able to request a fork of the given session:
+然后客户端能够请求给定会话的分叉：
 
 ```json
 {
@@ -61,40 +58,36 @@ Then the client would be able to request a fork of the given session:
 }
 ```
 
-The request expects the same options as `session/load`, such as `cwd` and `mcpServers`.
+该请求期望与 `session/load` 相同的选项，例如 `cwd` 和 `mcpServers`。
 
-Similarly, the agent would respond with optional data such as config options, the same as `session/load`.
+类似地，代理将响应可选数据，例如配置选项，与 `session/load` 相同。
 
-Agents may reply with an error if forking of that specific session or with the given options is not supported,
-for example if the agent does not support forking with a different working directory than the initial session.
+如果特定会话或给定选项不支持分叉，代理可能会回复错误，例如如果代理不支持与初始会话不同工作目录的分叉。
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
-**Q: Should a new method be introduced or should "session/new" be expanded?**
+**Q：是否应该引入新方法还是扩展 "session/new"？**
 
-They must be different because they will effectively require different options.
-For example, "session/new" has options such as capabilities and MCP which are not
-recommended to be set when forking, as the context being forked was built with other
-tools, and forking may accept a messageId for checkpoints.
+它们必须不同，因为它们实际上需要不同的选项。
+例如，"session/new" 有诸如功能和 MCP 之类的选项，这些选项在分叉时不建议设置，
+因为正在分叉的上下文是用其他工具构建的，分叉可能接受 messageId 作为检查点。
 
-**Q: Should fork only accept the `sessionId` or also other options, similar to `session/load`?**
+**Q：分叉是否只接受 `sessionId` 或也接受其他选项，类似于 `session/load`？**
 
-Initially, we proposed to only accept the `sessionId`, but this would make it more difficult to
-allow forking of inactive sessions in agents like `claude-code-acp`, as Claude does not retain the
-configured MCP servers of a session. Limiting fork to only already active sessions would limit its usefulness.
+最初，我们提议只接受 `sessionId`，但这将使在不活动的会话中分叉更加困难，
+例如在 `claude-code-acp` 等代理中，因为 Claude 不保留会话的配置 MCP 服务器。
+将分叉限制为仅已 active 的会话将限制其有用性。
 
-Moreover, allowing to pass different options also allows features like dynamically adding MCP servers
-to existing sessions to work by forking them with the new options, if the agent supports it. If it
-does not, the client can still show an appropriate error message.
+此外，允许传递不同选项还允许通过使用新选项对它们进行分叉来动态添加 MCP 服务器到现有会话的功能（如果代理支持）。如果不支持，客户端仍然可以显示适当的错误消息。
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-None. This proposal is inspired by the abilities exposed in Claude Agent SDK. It must be validated against other agents too.
+没有。这个提案受到 Claude Agent SDK 中公开的功能的启发。它也必须针对其他代理进行验证。
 
-## Revision history
+## 修订历史
 
-- 2025-11-17: Mentioned capabilities format, updated FAQ.
-- 2025-11-20: Added request format and updated capabilities format.
-- 2025-12-10: Adjust fork options to align with `session/load`.
+- 2025-11-17：提到功能格式，更新 FAQ。
+- 2025-11-20：添加请求格式并更新功能格式。
+- 2025-12-10：调整 fork 选项以与 `session/load` 保持一致。

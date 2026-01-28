@@ -1,81 +1,81 @@
 ---
-title: "Introduce RFD Process"
+title: "引入 RFD 流程"
 ---
 
-Author(s): [@benbrandt](https://github.com/benbrandt)
+作者：[@benbrandt](https://github.com/benbrandt)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change? Bullet points welcome.
+> 您提议进行什么更改？可以使用项目符号。
 
-Introduce a "Request for Dialog" (RFD) process to replace ad-hoc design discussions with structured, community-friendly design documents that track features from conception to completion.
+引入"对话请求"(RFD)流程，用结构化的、社区友好的设计文档取代临时设计讨论，追踪功能从概念到完成的整个过程。
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-Currently all development is being done primarily by the Zed team tracking requests and proposals from multiple teams. The goal is to create a process that helps to keep files organized and which can scale to participation by an emerging community.
+目前所有开发工作主要由 Zed 团队进行，跟踪来自多个团队的请求和提案。目标是创建一个有助于保持文件组织的流程，并且可以扩展以支持新兴社区的参与。
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
-### Project licensing
+### 项目许可
 
-All code and RFDs are licensed under an Apache 2.0 license. The project is intended to remain open source and freely available in perpetuity.
+所有代码和 RFD 均在 Apache 2.0 许可下许可。该项目旨在保持开源并永久免费提供。
 
-### Decision making
+### 决策方式
 
-For the initial phase, the project shall have a "design team" that consists of the Zed team acting in "BDFL" capacity. The expectation is that the project will setup a more structure governance structure as it grows. The design team makes all decisions regarding RFDs and sets overall project direction.
+在初始阶段，项目将有一个"设计团队"，由 Zed 团队以"BDFL"身份运作。预期是随着项目发展，将建立更具结构的治理结构。设计团队就 RFD 做出所有决定并设定整体项目方向。
 
-### RFD lifecycle
+### RFD 生命周期
 
-#### RFDs are proposed by opening a PR
+#### RFD 通过打开 PR 来提出
 
-An RFD begins as a PR adding a new file into the "Draft" section. The RFD can start minimal - just an elevator pitch and status quo are enough to begin dialog. Pull requests become the discussion forum where ideas get refined through collaborative iteration.
+RFD 从一个 PR 开始，将新文件添加到"草稿"部分。RFD 可以从极简开始 - 只需一个电梯演讲和现状就足以开始对话。拉取请求成为讨论论坛，通过协作迭代完善想法。
 
-As discussion proceeds, the FAQ of the RFD should be extended. If discussion has been going long enough, the PR should be closed, feedback summarized, and then re-opened with a link to the original PR.
+随着讨论的进行，RFD 的 FAQ 应被扩展。如果讨论时间足够长，应关闭 PR，汇总反馈，然后重新打开并链接到原始 PR。
 
-#### The PR is merged into "draft" once a core team member decides to champion it
+#### 一旦核心团队成员决定支持，PR 就会合并到"草稿"
 
-RFD proposals are merged into the "draft" section if a core team member decides to champion them. The champion is then the point-of-contact for that proposal going forward and they will work with the proposal authors and others to make it reality. Core team members do not need to seek consensus to merge a proposal into the draft, but they should listen carefully to concerns from other core team members, as it will be difficult to move the RFD forward if those concerns are not ultimately addressed.
+如果核心团队成员决定支持，RFD 提案将合并到"草稿"部分。然后支持者成为该提案的联系人，他们将与提案作者和其他人合作使其成为现实。核心团队成员不需要寻求共识来将提案合并到草稿，但他们应该仔细倾听其他核心团队成员的关切，因为如果这些关切最终得不到解决，将很难推动 RFD 前进。
 
-Once a proposal is moved to draft, code and implementation may begin to land into the PR. This work needs to be properly feature gated and marked with the name of the RFD.
+一旦提案移到草稿，代码和实现可以开始进入 PR。这项工作需要正确地进行功能门控，并用 RFD 的名称标记。
 
-Further discussion on the RFD can take place on [Zulip](https://agentclientprotocol.zulipchat.com/) if needed.
+如需要，RFD 的进一步讨论可以在 [Zulip](https://agentclientprotocol.zulipchat.com/) 上进行。
 
-#### Moving to the "preview" section
+#### 移至"预览"部分
 
-Once the champion feels the RFD is ready for others to check it out, they can open a PR to move the file to the preview section. This is a signal to the community (and particularly other core team members) to check out the proposal and see what they think. The PR should stay open for "a few days" to give people an opportunity to leave feedback. The champion is empowered to decide whether to land the PR. As ever, all new feedback should be recorded in the FAQ section.
+当支持者认为 RFD 已准备好让其他人查看时，他们可以打开 PR 将文件移至预览部分。这是向社区（特别是其他核心团队成员）发出的信号，让他们查看提案并发表意见。PR 应保持开放"几天"，以便人们有机会留下反馈。支持者有权决定是否落地 PR。与以往一样，所有新反馈都应记录在 FAQ 部分。
 
-#### Deciding to accept an RFD
+#### 决定接受 RFD
 
-When they feel the RFD is ready to be completed, the champion requests review by the team. The team can raise concerns and notes during discussion. Final decision on an RFD is made by the core team lead.
+当他们认为 RFD 已准备好完成时，支持者请求团队审查。团队可以在讨论期间提出关切和注意事项。RFD 的最终决定由核心团队负责人做出。
 
-#### Implementation of an RFD
+#### RFD 的实施
 
-Once accepted, RFDs become living documents that track implementation progress. Status badges in design documentation link back to the relevant RFD, creating a clear connection between "why we're building this" and "how it works." When building code with an agent, agents should read RFDs during implementation to understand design rationale and update them with implementation progress.
+一旦被接受，RFD 成为跟踪实施进度的动态文档。设计文档中的状态徽章链接回相关的 RFD，在"我们为什么构建这个"和"它如何工作"之间建立清晰连接。当使用代理构建代码时，代理应在实施过程中阅读 RFD 以了解设计原理，并用实施进度更新它们。
 
-### Moderating and managing RFD discussions
+### 审核和管理 RFD 讨论
 
-Moving RFDs between points in the cycle involve opening PRs. Those PRs will be places to hold dialog and discussion -- but not the only place, we expect more detailed discussions to take place on [Zulip](https://agentclientprotocol.zulipchat.com/) or other communication channels. RFD owners and champions should actively "curate" discussions by collecting questions that come up and ensuring they are covered in the FAQ. Duplicate questions can be directed to the FAQ.
+在周期中移动 RFD 涉及打开 PR。这些 PR 将成为进行对话和讨论的地方——但不是唯一的地方，我们期望更详细的讨论在 [Zulip](https://agentclientprotocol.zulipchat.com/) 或其他沟通渠道上进行。RFD 所有者和支持者应通过收集出现的问题并确保它们在 FAQ 中得到涵盖来积极"策划"讨论。重复的问题可以指向 FAQ。
 
-If the discussion on the PR gets to the point where Github begins to hide comments, the PR should typically be closed, feedback collected, and then re-opened.
+如果 PR 上的讨论达到了 Github 开始隐藏评论的程度，通常应该关闭 PR，收集反馈，然后重新打开。
 
-## Implementation plan
+## 实施计划
 
-> What is your implementation plan?
+> 您的实施计划是什么？
 
-- ✅ Create RFD infrastructure (about, TEMPLATE, navigation setup)
-- ✅ Establish lifecycle: Draft → Preview → Accepted → Completed
-- ⏳ Write RFDs for major in-progress features
+- ✅ 创建 RFD 基础设施（about、TEMPLATE、导航设置）
+- ✅ 建立生命周期：草稿 → 预览 → 已接受 → 已完成
+- ⏳ 为正在进行的主要功能编写 RFD
 
-## Frequently asked questions
+## 常见问题
 
-### Why "Request for Dialog" and not "Request for Comment"?
+### 为什么是"对话请求"而不是"评论请求"？
 
-Well, partly because "dialog" emphasizes conversation and exploration rather than just collecting feedback on a predetermined design. We also shamelessly stole this process from [Niko Matsakis and the Symposium project](https://symposium-dev.github.io/symposium/rfds/index.html) (with permission) so that we could benefit from their experience.
+嗯，部分原因是"对话"强调对话和探索，而不仅仅是收集对预定设计的反馈。我们还从 [Niko Matsakis 和 Symposium 项目](https://symposium-dev.github.io/symposium/rfds/index.html)（经许可）巧妙地借鉴了这个流程，以便我们能够从他们的经验中受益。
 
-## Revision history
+## 修订历史
 
-- 2025-10-28: Initial version, created alongside RFD infrastructure
+- 2025-10-28：初始版本，与 RFD 基础设施一起创建

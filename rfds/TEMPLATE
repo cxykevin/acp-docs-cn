@@ -1,80 +1,79 @@
 ---
-title: "INSERT RFD TITLE HERE"
+title: "在此处插入 RFD 标题"
 ---
 
 <!--
 
-Instructions:
+说明：
 
-* Copy this file and give it a name like my-feature-slug.mdx
-* Do not remove the `>` sections -- they are part of the template!
-* Replace the HTML comments that give general guidance with your answers and content. Do not begin your answers with `>`, your text should be unquoted.
-* For optional sections, you can leave the HTML comment as is if you do not wish to provide an answer.
-* In the FAQ, begin each question with a markdown `##` section so that it gets a linkable anchor.
+* 复制此文件并将其命名为类似 my-feature-slug.mdx
+* 不要删除 `>` 部分——它们是模板的一部分！
+* 用您的答案和内容替换给出一般指导的 HTML 注释。不要以 `>` 开始您的回答，您的文本应该不加引号。
+* 对于可选部分，如果您不希望提供答案，可以将 HTML 注释保留在原处。
+* 在 FAQ 中，每个问题都以 markdown `##` 部分开始，以便获得可链接的锚点。
 
 -->
 
-Author(s): [githubhandle](url)
+作者：[githubhandle](url)
 
-## Elevator pitch
+## 电梯演讲
 
-> What are you proposing to change?
+> 您提议进行什么更改？
 
 <!--
-    Give a brief, high-level overview of what you plan to do and what problem you are solving. Feel free to use bullet points to help clarify the structure.
+    简要概述您计划做什么以及要解决的问题。可以使用项目符号来帮助澄清结构。
 -->
 
-## Status quo
+## 现状
 
-> How do things work today and what problems does this cause? Why would we change things?
+> 今天的事情是如何运作的，这导致了什么问题？我们为什么要改变？
 
-## What we propose to do about it
+## 我们提议对此做什么
 
-> What are you proposing to improve the situation?
+> 您提议如何改善情况？
 
 <!--
-    Use this section to describe what you propose to do at a high-level.
-    Don't give every detail, this should be the high-level summary.
+    使用此部分描述您提议在高级别上做什么。
+    不要给出每一个细节，这应该是高级别的摘要。
 
-    Note: This section is OPTIONAL when RFDs are first opened.
-    You can also include multiple variants if you have different ideas of how to approach the problem, though these should be narrowed down as the RFD progresses.
+    注意：当 RFD 首次打开时，此部分是可选的。
+    如果您对解决问题的方法有不同的想法，也可以包括多个变体，尽管这些应该随着 RFD 的进展而缩小。
 -->
 
-## Shiny future
+## 美好的未来
 
-> How will things will play out once this feature exists?
+> 一旦这个功能存在，事情将如何发展？
 
 <!--
-    Use this section to describe the "status quo" as it will play out once
-    we have made these changes.
+    使用此部分描述一旦我们进行了这些更改，"现状"将如何发展。
 
-    Note: This section is OPTIONAL when RFDs are first opened.
+    注意：当 RFD 首次打开时，此部分是可选的。
 -->
 
-## Implementation details and plan
+## 实施细节和计划
 
-> Tell me more about your implementation. What is your detailed implementation plan?
+> 告诉我更多关于您的实施。您的详细实施计划是什么？
 
 <!--
-    Use this section to add details that were not covered in the "What we propose to do about it" section and also include an implementation plan with phases.
+    使用此部分添加"我们提议对此做什么"部分中未涵盖的细节，并包括分阶段的实施计划。
 
-    Note: This section is OPTIONAL and NOT RECOMMENDED when RFDs are first opened. It can distract from the discussion of the problem.
+    注意：当 RFD 首次打开时，此部分是可选的，不推荐。它可能会分散对问题讨论的注意力。
 -->
 
-## Frequently asked questions
+## 常见问题
 
-> What questions have arisen over the course of authoring this document or during subsequent discussions?
+> 在编写本文档的过程中或随后的讨论中出现了哪些问题？
 
 <!--
-    Keep this section up-to-date as discussion proceeds. The goal is to capture major points that came up on a PR or in a discussion forum -- and if they reoccur, to point people to the FAQ so that we can start the dialog from a more informed place.
+    随着讨论的进行，保持此部分更新。目标是捕获在 PR 或讨论论坛上出现的主要要点——如果它们再次出现，将人们指向 FAQ，以便我们能够从更知情的地方开始对话。
 -->
 
-### What alternative approaches did you consider, and why did you settle on this one?
+### 您考虑了哪些替代方法，为什么选择这一个？
 
-None. The idea came to me fully formed, like Athena springing from Zeus's head.
+没有。这个想法完全成型地出现在我脑海中，就像雅典娜从宙斯的头上涌现出来一样。
 
-<!-- You...may want to adjust this. -->
+<!-- 您...可能需要调整这个。 -->
 
-## Revision history
+## 修订历史
 
-<!-- If there have been major updates to this RFD, you can include the git revisions and a summary of the changes. -->
+<!-- 如果此 RFD 有重大更新，可以包含 git 修订和更改的摘要。 -->
