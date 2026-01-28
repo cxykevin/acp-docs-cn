@@ -1,0 +1,312 @@
+---
+title: "工具调用"
+description: "代理如何报告工具调用执行"
+---
+
+工具调用代表语言模型在[提示轮次](./prompt-turn)期间请求代理执行的操作。当 LLM 确定需要与外部系统交互时——如读取文件、运行代码或获取数据——它会生成代理代表其执行的工具调用。
+
+代理通过 [`session/update`](./prompt-turn#3-agent-reports-output) 通知报告工具调用，允许客户端向用户显示实时进度和结果。
+
+虽然代理处理实际执行，但它们可以利用客户端功能，如[权限请求](#requesting-permission)或[文件系统访问](./file-system)，以提供更丰富、更集成的体验。
+
+## 创建
+
+当语言模型请求工具调用时，代理**应该**向客户端报告：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "tool_call",
+      "toolCallId": "call_001",
+      "title": "读取配置文件",
+      "kind": "read",
+      "status": "pending"
+    }
+  }
+}
+```
+
+<ParamField path="toolCallId" type="ToolCallId" required>
+  会话中此工具调用的唯一标识符
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  描述工具正在做什么的人类可读标题
+</ParamField>
+
+<ParamField path="kind" type="ToolKind">
+  被调用工具的类别。
+
+<Expandable title="种类">
+  - `read` - 读取文件或数据
+  - `edit` - 修改文件或内容
+  - `delete` - 删除文件或数据
+  - `move` - 移动或重命名文件
+  - `search` - 搜索信息
+  - `execute` - 运行命令或代码
+  - `think` - 内部推理或计划
+  - `fetch` - 检索外部数据
+  - `other` - 其他工具类型（默认）
+</Expandable>
+
+工具种类帮助客户端选择适当的图标并优化工具执行进度的显示方式。
+
+</ParamField>
+
+<ParamField path="status" type="ToolCallStatus">
+  当前的[执行状态](#status)（默认为 `pending`）
+</ParamField>
+
+<ParamField path="content" type="ToolCallContent[]">
+  工具调用产生的[内容](#content)
+</ParamField>
+
+<ParamField path="locations" type="ToolCallLocation[]">
+  此工具调用影响的[文件位置](#following-the-agent)
+</ParamField>
+
+<ParamField path="rawInput" type="object">
+  发送到工具的原始输入参数
+</ParamField>
+
+<ParamField path="rawOutput" type="object">
+  工具返回的原始输出
+</ParamField>
+
+## 更新
+
+随着工具执行，代理发送更新以报告进度和结果。
+
+更新使用带有 `tool_call_update` 的 `session/update` 通知：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "tool_call_update",
+      "toolCallId": "call_001",
+      "status": "in_progress",
+      "content": [
+        {
+          "type": "content",
+          "content": {
+            "type": "text",
+            "text": "找到 3 个配置文件..."
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+除 `toolCallId` 外的所有字段在更新中都是可选的。只需包含正在更改的字段。
+
+## 请求权限
+
+代理在执行工具调用之前**可以**通过调用 `session/request_permission` 方法请求用户权限：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "session/request_permission",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "toolCall": {
+      "toolCallId": "call_001"
+    },
+    "options": [
+      {
+        "optionId": "allow-once",
+        "name": "允许一次",
+        "kind": "allow_once"
+      },
+      {
+        "optionId": "reject-once",
+        "name": "拒绝",
+        "kind": "reject_once"
+      }
+    ]
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  此请求的会话 ID
+</ParamField>
+
+<ParamField path="toolCall" type="ToolCallUpdate" required>
+  包含操作详细信息的工具调用更新
+</ParamField>
+
+<ParamField path="options" type="PermissionOption[]" required>
+  用户可选择的可用[权限选项](#permission-options)
+</ParamField>
+
+客户端响应用户的决定：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "outcome": {
+      "outcome": "selected",
+      "optionId": "allow-once"
+    }
+  }
+}
+```
+
+客户端**可以**根据用户设置自动允许或拒绝权限请求。
+
+如果当前提示轮次被[取消](./prompt-turn#cancellation)，客户端**必须**用 `"cancelled"` 结果响应：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "outcome": {
+      "outcome": "cancelled"
+    }
+  }
+}
+```
+
+<ResponseField name="outcome" type="RequestPermissionOutcome" required>
+  用户的决定，可以是：
+  - `cancelled` - [提示轮次被取消](./prompt-turn#cancellation)
+  - `selected` 并带有 `optionId` - 所选权限选项的 ID
+</ResponseField>
+
+### 权限选项
+
+提供给客户端的每个权限选项包含：
+
+<ParamField path="optionId" type="string" required>
+  此选项的唯一标识符
+</ParamField>
+
+<ParamField path="name" type="string" required>
+  显示给用户的可读标签
+</ParamField>
+
+<ParamField path="kind" type="PermissionOptionKind" required>
+  帮助客户端为每个选项选择适当图标和 UI 处理的提示。
+
+- `allow_once` - 仅允许此操作一次
+- `allow_always` - 允许此操作并记住选择
+- `reject_once` - 仅拒绝此操作一次
+- `reject_always` - 拒绝此操作并记住选择
+
+</ParamField>
+
+## 状态
+
+工具调用在其生命周期中经历不同的状态：
+
+<ResponseField name="pending">
+  工具调用尚未开始运行，因为输入正在流式传输或等待批准
+</ResponseField>
+
+<ResponseField name="in_progress">
+  工具调用当前正在运行
+</ResponseField>
+
+<ResponseField name="completed">
+  工具调用成功完成
+</ResponseField>
+
+<ResponseField name="failed">工具调用失败并出现错误</ResponseField>
+
+## 内容
+
+工具调用可以产生不同类型的内容：
+
+### 常规内容
+
+标准[内容块](./content)，如文本、图像或资源：
+
+```json
+{
+  "type": "content",
+  "content": {
+    "type": "text",
+    "text": "分析完成。发现 3 个问题。"
+  }
+}
+```
+
+### 差异
+
+显示为差异的文件修改：
+
+```json
+{
+  "type": "diff",
+  "path": "/home/user/project/src/config.json",
+  "oldText": "{\n  \"debug\": false\n}",
+  "newText": "{\n  \"debug\": true\n}"
+}
+```
+
+<ParamField path="path" type="string" required>
+  被修改的文件的绝对路径
+</ParamField>
+
+<ParamField path="oldText" type="string">
+  原始内容（新文件为 null）
+</ParamField>
+
+<ParamField path="newText" type="string" required>
+  修改后的新内容
+</ParamField>
+
+### 终端
+
+命令执行的实时终端输出：
+
+```json
+{
+  "type": "terminal",
+  "terminalId": "term_xyz789"
+}
+```
+
+<ParamField path="terminalId" type="string" required>
+  使用 `terminal/create` 创建的终端的 ID
+</ParamField>
+
+当终端嵌入工具调用时，客户端在生成时显示实时输出，并在释放终端后继续显示。
+
+<Card icon="terminal" horizontal href="./terminals">
+  了解更多关于终端的信息
+</Card>
+
+## 跟随代理
+
+工具调用可以报告它们正在处理的文件位置，使客户端能够实现"跟随"功能，实时跟踪代理正在访问或修改的文件。
+
+```json
+{
+  "path": "/home/user/project/src/main.py",
+  "line": 42
+}
+```
+
+<ParamField path="path" type="string" required>
+  正在访问或修改的文件的绝对路径
+</ParamField>
+
+<ParamField path="line" type="number">
+  文件中的可选行号
+</ParamField>

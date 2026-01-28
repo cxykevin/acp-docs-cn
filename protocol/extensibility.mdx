@@ -1,0 +1,134 @@
+---
+title: "可扩展性"
+description: "添加自定义数据和功能"
+---
+
+代理客户端协议提供内置的扩展机制，允许实现在保持与核心协议兼容的同时添加自定义功能。这些机制确保代理和客户端可以在不破坏互操作性的情况下进行创新。
+
+## `_meta` 字段
+
+协议中的所有类型都包含一个 `_meta` 字段，类型为 `{ [key: string]: unknown }`，实现可以使用该字段附加自定义信息。这包括请求、响应、通知，甚至嵌套类型，如内容块、工具调用、计划条目和功能对象。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "session/prompt",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "prompt": [
+      {
+        "type": "text",
+        "text": "Hello, world!"
+      }
+    ],
+    "_meta": {
+      "traceparent": "00-80e1afed08e019fc1110464cfa66635c-7a085853722dc6d2-01",
+      "zed.dev/debugMode": true
+    }
+  }
+}
+```
+
+客户端可以将字段传播到代理以用于关联目的，例如 `requestId`。`_meta` 中的以下根级别键**应该**为 [W3C 跟踪上下文](https://www.w3.org/TR/trace-context/)保留，以确保与现有 MCP 实现和 OpenTelemetry 工具的互操作性：
+
+- `traceparent`
+- `tracestate`
+- `baggage`
+
+实现**不得**在属于规范一部分的类型的根级别添加任何自定义字段。所有可能的名称都为将来的协议版本保留。
+
+## 扩展方法
+
+协议保留任何以下划线（`_`）开头的方法名称用于自定义扩展。这允许实现添加新功能，而不会与将来的协议版本发生冲突。
+
+扩展方法遵循标准的 [JSON-RPC 2.0](https://www.jsonrpc.org/specification) 语义：
+
+- **[请求](https://www.jsonrpc.org/specification#request_object)** - 包含 `id` 字段并期望响应
+- **[通知](https://www.jsonrpc.org/specification#notification)** - 省略 `id` 字段并且是单向的
+
+### 自定义请求
+
+除了协议指定的请求外，实现**可以**公开和调用自定义 JSON-RPC 请求，只要其名称以下划线（`_`）开头。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "_zed.dev/workspace/buffers",
+  "params": {
+    "language": "rust"
+  }
+}
+```
+
+接收到自定义请求后，实现**必须**使用提供的 `id` 进行相应响应：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "buffers": [
+      { "id": 0, "path": "/home/user/project/src/main.rs" },
+      { "id": 1, "path": "/home/user/project/src/editor.rs" }
+    ]
+  }
+}
+```
+
+如果接收端无法识别自定义方法名称，则应使用标准的"未找到方法"错误进行响应：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32601,
+    "message": "Method not found"
+  }
+}
+```
+
+为避免此类情况，扩展**应该**广告其[自定义功能](#advertising-custom-capabilities)，以便调用者可以先检查其可用性，并相应地调整其行为或界面。
+
+### 自定义通知
+
+自定义通知是以下划线（`_`）开头的常规 JSON-RPC 通知。与所有通知一样，它们省略 `id` 字段：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "_zed.dev/file_opened",
+  "params": {
+    "path": "/home/user/project/src/editor.rs"
+  }
+}
+```
+
+与自定义请求不同，实现**应该**忽略无法识别的通知。
+
+## 广告自定义功能
+
+实现**应该**使用功能对象中的 `_meta` 字段来广告对扩展及其方法的支持：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "protocolVersion": 1,
+    "agentCapabilities": {
+      "loadSession": true,
+      "_meta": {
+        "zed.dev": {
+          "workspace": true,
+          "fileNotifications": true
+        }
+      }
+    }
+  }
+}
+```
+
+这允许实现在初始化期间协商自定义功能，而不会破坏与标准客户端和代理的兼容性。

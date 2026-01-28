@@ -1,0 +1,166 @@
+---
+title: "会话模式"
+description: "在不同的代理操作模式之间切换"
+---
+
+代理可以提供一组它们可以操作的模式。模式通常会影响使用的系统提示、工具的可用性以及是否在运行前请求权限。
+
+## 初始状态
+
+在[会话设置](./session-setup)期间，代理**可以**返回它可以操作的模式列表以及当前活动的模式：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "sessionId": "sess_abc123def456",
+    "modes": {
+      "currentModeId": "ask",
+      "availableModes": [
+        {
+          "id": "ask",
+          "name": "Ask",
+          "description": "在进行任何更改之前请求权限"
+        },
+        {
+          "id": "architect",
+          "name": "Architect",
+          "description": "设计和规划软件系统而不实现"
+        },
+        {
+          "id": "code",
+          "name": "Code",
+          "description": "使用完整工具访问权限编写和修改代码"
+        }
+      ]
+    }
+  }
+}
+```
+
+<ResponseField name="modes" type="SessionModeState">
+  会话的当前模式状态
+</ResponseField>
+
+### SessionModeState
+
+<ResponseField name="currentModeId" type="SessionModeId" required>
+  当前活动模式的 ID
+</ResponseField>
+
+<ResponseField name="availableModes" type="SessionMode[]" required>
+  代理可以操作的模式集合
+</ResponseField>
+
+### SessionMode
+
+<ResponseField name="id" type="SessionModeId" required>
+  此模式的唯一标识符
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  模式的人类可读名称
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  可选描述，提供有关此模式功能的更多详细信息
+</ResponseField>
+
+## 设置当前模式
+
+当前模式可以在会话期间的任何时间点更改，无论代理是空闲还是正在生成响应。
+
+### 从客户端
+
+通常，客户端向用户显示可用模式，并允许他们更改当前模式，这可以通过调用 [`session/set_mode`](./schema#session%2Fset-mode) 方法来完成。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "session/set_mode",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "modeId": "code"
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  要设置模式的会话的 ID
+</ParamField>
+
+<ParamField path="modeId" type="SessionModeId" required>
+  要切换到的模式的 ID。必须是 `availableModes` 中列出的模式之一
+</ParamField>
+
+### 从代理
+
+代理也可以更改自己的模式，并通过发送 `current_mode_update` 会话通知让客户端知道：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "current_mode_update",
+      "modeId": "code"
+    }
+  }
+}
+```
+
+#### 退出计划模式
+
+代理可能切换模式的一个常见情况是在计划/架构模式期间向语言模型提供特殊的"退出模式"工具。当语言模型确定已准备好开始实现解决方案时，可以调用此工具。
+
+此"切换模式"工具通常在运行前请求权限，就像任何其他工具一样：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "session/request_permission",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "toolCall": {
+      "toolCallId": "call_switch_mode_001",
+      "title": "准备实现",
+      "kind": "switch_mode",
+      "status": "pending",
+      "content": [
+        {
+          "type": "text",
+          "text": "## 实现计划..."
+        }
+      ]
+    },
+    "options": [
+      {
+        "optionId": "code",
+        "name": "是，并自动接受所有操作",
+        "kind": "allow_always"
+      },
+      {
+        "optionId": "ask",
+        "name": "是，并手动接受操作",
+        "kind": "allow_once"
+      },
+      {
+        "optionId": "reject",
+        "name": "否，保持在架构模式",
+        "kind": "reject_once"
+      }
+    ]
+  }
+}
+```
+
+当选择某个选项时，工具运行，设置模式并发送上述的 `current_mode_update` 通知。
+
+<Card icon="shield-check" horizontal href="./tool-calls#requesting-permission">
+  了解更多关于权限请求
+</Card>

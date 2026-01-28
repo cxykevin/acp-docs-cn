@@ -1,0 +1,97 @@
+---
+title: "斜杠命令"
+description: "向客户端广告可用的斜杠命令"
+---
+
+代理可以广告一组用户可调用的斜杠命令。这些命令提供对特定代理功能和工作流程的快速访问。命令作为常规[提示](./prompt-turn)请求的一部分运行，客户端在提示中包含命令文本。
+
+## 广告命令
+
+创建会话后，代理**可以**通过 `available_commands_update` 会话通知发送可用命令列表：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "available_commands_update",
+      "availableCommands": [
+        {
+          "name": "web",
+          "description": "搜索网络信息",
+          "input": {
+            "hint": "要搜索的查询"
+          }
+        },
+        {
+          "name": "test",
+          "description": "运行当前项目的测试"
+        },
+        {
+          "name": "plan",
+          "description": "创建详细的实现计划",
+          "input": {
+            "hint": "要计划的内容描述"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+<ResponseField name="availableCommands" type="AvailableCommand[]">
+  此会话中可用的命令列表
+</ResponseField>
+
+### AvailableCommand
+
+<ResponseField name="name" type="string" required>
+  命令名称（例如 "web"、"test"、"plan"）
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  命令功能的人类可读描述
+</ResponseField>
+
+<ResponseField name="input" type="AvailableCommandInput">
+  命令的可选输入规范
+</ResponseField>
+
+### AvailableCommandInput
+
+目前支持非结构化文本输入：
+
+<ResponseField name="hint" type="string" required>
+  尚未提供输入时显示的提示
+</ResponseField>
+
+## 动态更新
+
+代理可以在会话期间的任何时间通过发送另一个 `available_commands_update` 通知来更新可用命令列表。这允许根据上下文添加命令、在不再相关时删除命令，或使用更新的描述修改命令。
+
+## 运行命令
+
+命令作为提示请求中的常规用户消息包含：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "session/prompt",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "prompt": [
+      {
+        "type": "text",
+        "text": "/web agent client protocol"
+      }
+    ]
+  }
+}
+```
+
+代理识别命令前缀并相应地处理。命令可以在同一提示数组中伴随任何其他用户消息内容类型（图像、音频等）。
+

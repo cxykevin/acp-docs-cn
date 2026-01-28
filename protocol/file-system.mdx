@@ -1,0 +1,116 @@
+---
+title: "文件系统"
+description: "客户端文件系统访问方法"
+---
+
+文件系统方法允许代理在客户端环境中读取和写入文本文件。这些方法使代理能够访问未保存的编辑器状态，并允许客户端跟踪代理执行期间所做的文件修改。
+
+## 检查支持
+
+在尝试使用文件系统方法之前，代理**必须**通过在 `initialize` 响应中检查 [客户端功能](./initialization#client-capabilities) 字段来验证客户端是否支持这些功能：
+
+```json highlight={8,9}
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "protocolVersion": 1,
+    "clientCapabilities": {
+      "fs": {
+        "readTextFile": true,
+        "writeTextFile": true
+      }
+    }
+  }
+}
+```
+
+如果 `readTextFile` 或 `writeTextFile` 为 `false` 或不存在，则代理**不得**尝试调用相应的文件系统方法。
+
+## 读取文件
+
+`fs/read_text_file` 方法允许代理从客户端文件系统读取文本文件内容，包括编辑器中未保存的更改。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "fs/read_text_file",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "path": "/home/user/project/src/main.py",
+    "line": 10,
+    "limit": 50
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  此请求的[会话 ID](./session-setup#session-id)
+</ParamField>
+
+<ParamField path="path" type="string" required>
+  要读取的文件的绝对路径
+</ParamField>
+
+<ParamField path="line" type="number">
+  可选的开始读取行号（从1开始）
+</ParamField>
+
+<ParamField path="limit" type="number">
+  可选的最大读取行数
+</ParamField>
+
+客户端响应文件内容：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": {
+    "content": "def hello_world():\n    print('Hello, world!')\n"
+  }
+}
+```
+
+## 写入文件
+
+`fs/write_text_file` 方法允许代理在客户端文件系统中写入或更新文本文件。
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "fs/write_text_file",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "path": "/home/user/project/config.json",
+    "content": "{\n  \"debug\": true,\n  \"version\": \"1.0.0\"\n}"
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  此请求的[会话 ID](./session-setup#session-id)
+</ParamField>
+
+<ParamField path="path" type="string" required>
+要写入的文件的绝对路径。
+
+如果文件不存在，客户端**必须**创建该文件。
+
+</ParamField>
+
+<ParamField path="content" type="string" required>
+  要写入文件的文本内容
+</ParamField>
+
+客户端在成功时响应空结果：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": null
+}
+```

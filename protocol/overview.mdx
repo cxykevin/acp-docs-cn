@@ -1,0 +1,206 @@
+---
+title: "概述"
+description: "Agent Client Protocol 工作原理"
+---
+
+Agent Client Protocol 允许[代理](#agent)和[客户端](#client)通过公开每一方可以调用的方法并发送通知来告知彼此事件，从而实现通信。
+
+## 通信模型
+
+该协议遵循 [JSON-RPC 2.0](https://www.jsonrpc.org/specification) 规范，包含两种类型的消息：
+
+- **方法**：期望返回结果或错误的请求-响应对
+- **通知**：单向消息，不期望响应
+
+## 消息流
+
+典型的流程遵循以下模式：
+
+<Steps>
+<Step title="初始化阶段">
+
+- 客户端 → 代理：`initialize` 建立连接
+- 客户端 → 代理：`authenticate`（如果代理需要）
+
+</Step>
+
+<Step title="会话设置 - 以下任一：">
+
+- 客户端 → 代理：`session/new` 创建新会话
+- 客户端 → 代理：`session/load` 恢复现有会话（如果支持）
+
+</Step>
+
+<Step title="提示轮次">
+   - 客户端 → 代理：`session/prompt` 发送用户消息
+   - 代理 → 客户端：`session/update` 通知进度更新
+   - 代理 → 客户端：根据需要执行文件操作或权限请求
+   - 客户端 → 代理：`session/cancel` 中断处理（如需要）
+   - 轮次结束，代理发送包含停止原因的 `session/prompt` 响应
+</Step>
+</Steps>
+
+## 代理
+
+代理是使用生成式 AI 自主修改代码的程序。它们通常作为客户端的子进程运行。
+
+### 基线方法
+
+<ResponseField
+  name="initialize"
+  post={[<a href="./schema#initialize">Schema</a>]}
+>
+  [协商版本并交换功能。](./initialization)
+</ResponseField>
+
+<ResponseField
+  name="authenticate"
+  post={[<a href="./schema#authenticate">Schema</a>]}
+>
+  与代理进行身份验证（如果需要）。
+</ResponseField>
+
+<ResponseField
+  name="session/new"
+  post={[<a href="./schema#session%2Fnew">Schema</a>]}
+>
+  [创建新的对话会话](./session-setup#creating-a-session)。
+</ResponseField>
+
+<ResponseField
+  name="session/prompt"
+  post={[<a href="./schema#session%2Fprompt">Schema</a>]}
+>
+  向代理[发送用户提示](./prompt-turn#1-user-message)。
+</ResponseField>
+
+### 可选方法
+
+<ResponseField
+  name="session/load"
+  post={[<a href="./schema#session%2Fload">Schema</a>]}
+>
+  [加载现有会话](./session-setup#loading-sessions)（需要
+  `loadSession` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="session/set_mode"
+  post={[<a href="./schema#session%2Fset-mode">Schema</a>]}
+>
+  [在代理操作模式之间切换](./session-modes#setting-the-current-mode)。
+</ResponseField>
+
+### 通知
+
+<ResponseField
+  name="session/cancel"
+  post={[<a href="./schema#session%2Fcancel">Schema</a>]}
+>
+  [取消正在进行的操作](./prompt-turn#cancellation)（不期望响应）。
+</ResponseField>
+
+## 客户端
+
+客户端提供用户与代理之间的接口。它们通常是代码编辑器（IDE、文本编辑器），但也可以是用于与代理交互的其他 UI。客户端管理环境、处理用户交互并控制对资源的访问。
+
+### 基线方法
+
+<ResponseField
+  name="session/request_permission"
+  post={[<a href="./schema#session%2Frequest_permission">Schema</a>]}
+>
+  为工具调用[请求用户授权](./tool-calls#requesting-permission)。
+</ResponseField>
+
+### 可选方法
+
+<ResponseField
+  name="fs/read_text_file"
+  post={[<a href="./schema#fs%2Fread_text_file">Schema</a>]}
+>
+  [读取文件内容](./file-system#reading-files)（需要 `fs.readTextFile`
+  功能）。
+</ResponseField>
+
+<ResponseField
+  name="fs/write_text_file"
+  post={[<a href="./schema#fs%2Fwrite_text_file">Schema</a>]}
+>
+  [写入文件内容](./file-system#writing-files)（需要
+  `fs.writeTextFile` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="terminal/create"
+  post={[<a href="./schema#terminal%2Fcreate">Schema</a>]}
+>
+  [创建新终端](./terminals)（需要 `terminal` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="terminal/output"
+  post={[<a href="./schema#terminal%2Foutput">Schema</a>]}
+>
+  获取终端输出和退出状态（需要 `terminal` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="terminal/release"
+  post={[<a href="./schema#terminal%2Frelease">Schema</a>]}
+>
+  释放终端（需要 `terminal` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="terminal/wait_for_exit"
+  post={[<a href="./schema#terminal%2Fwait_for_exit">Schema</a>]}
+>
+  等待终端命令退出（需要 `terminal` 功能）。
+</ResponseField>
+
+<ResponseField
+  name="terminal/kill"
+  post={[<a href="./schema#terminal%2Fkill">Schema</a>]}
+>
+  在不释放的情况下终止终端命令（需要 `terminal` 功能）。
+</ResponseField>
+
+### 通知
+
+<ResponseField
+  name="session/update"
+  post={[<a href="./schema#session%2Fupdate">Schema</a>]}
+>
+  [发送会话更新](./prompt-turn#3-agent-reports-output)以通知客户端更改（不期望响应）。这包括： - [消息块](./content)（代理、用户、思考） - [工具调用和更新](./tool-calls) - [计划](./agent-plan) - [可用命令更新](./slash-commands#advertising-commands) - [模式更改](./session-modes#from-the-agent)
+</ResponseField>
+
+## 参数要求
+
+- 协议中的所有文件路径**必须**是绝对路径。
+- 行号从 1 开始
+
+## 错误处理
+
+所有方法都遵循标准 JSON-RPC 2.0 [错误处理](https://www.jsonrpc.org/specification#error_object)：
+
+- 成功响应包含 `result` 字段
+- 错误包含带有 `code` 和 `message` 的 `error` 对象
+- 通知永远不会收到响应（成功或错误）
+
+## 可扩展性
+
+协议提供了内置机制来添加自定义功能，同时保持兼容性：
+
+- 使用 `_meta` 字段添加自定义数据
+- 通过在名称前加下划线（`_`）创建自定义方法
+- 在初始化期间宣告自定义功能
+
+了解[协议可扩展性](./extensibility)以了解如何使用这些机制。
+
+## 下一步
+
+- 了解[初始化](./initialization)以理解版本和功能协商
+- 了解[会话设置](./session-setup)以创建和加载会话
+- 查看[提示轮次](./prompt-turn)生命周期
+- 探索[可扩展性](./extensibility)以添加自定义功能

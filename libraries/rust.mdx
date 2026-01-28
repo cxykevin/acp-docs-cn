@@ -1,0 +1,22 @@
+---
+title: "Rust"
+description: "代理客户端协议的Rust库"
+---
+
+[agent-client-protocol](https://crates.io/crates/agent-client-protocol) Rust crate 提供了代理客户端协议双方的实现，可用于构建自己的代理服务器或客户端。
+
+开始使用，将crate作为依赖项添加到项目的 `Cargo.toml`：
+
+```bash
+cargo add agent-client-protocol
+```
+
+根据您构建的工具类型，您需要实现 [Agent](https://docs.rs/agent-client-protocol/latest/agent_client_protocol/trait.Agent.html) trait 或 [Client](https://docs.rs/agent-client-protocol/latest/agent_client_protocol/trait.Client.html) trait 来定义与ACP对应方的交互。
+
+[agent](https://github.com/agentclientprotocol/rust-sdk/blob/main/examples/agent.rs) 和 [client](https://github.com/agentclientprotocol/rust-sdk/blob/main/examples/client.rs) 示例二进制文件提供了可运行的示例，说明如何执行此操作，您可以将其用作起点。
+
+您可以在 [docs.rs](https://docs.rs/agent-client-protocol/latest/agent_client_protocol/) 上阅读 `agent-client-protocol` crate 的完整文档。
+
+## 用户
+
+`agent-client-protocol` crate 为 [Zed](https://zed.dev) 编辑器中的外部代理提供集成支持。

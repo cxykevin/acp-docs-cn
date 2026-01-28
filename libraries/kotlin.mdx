@@ -1,0 +1,26 @@
+---
+title: "Kotlin"
+description: "代理客户端协议的Kotlin库"
+---
+
+[kotlin-sdk](https://github.com/agentclientprotocol/kotlin-sdk) 提供了代理客户端协议双方的实现，可用于构建自己的代理服务器或客户端。
+
+**目前支持JVM，其他目标正在开发中。**
+
+开始使用，将仓库添加到构建文件中：
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+```
+
+添加依赖：
+
+```kotlin
+dependencies {
+    implementation("com.agentclientprotocol:acp:0.1.0-SNAPSHOT")
+}
+```
+
+[示例](https://github.com/agentclientprotocol/kotlin-sdk/tree/master/samples/kotlin-acp-client-sample)演示了如何实现协议的双方。

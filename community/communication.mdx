@@ -1,0 +1,86 @@
+---
+title: "贡献者沟通"
+description: "代理客户端协议贡献者的沟通方法"
+---
+
+本文档解释如何在代理客户端协议（ACP）项目内进行沟通和协作。
+
+## 沟通渠道
+
+简而言之：
+
+- **[Zulip](https://agentclientprotocol.zulipchat.com/)**：用于实时或临时讨论。
+- **[RFDs](https://agentclientprotocol.com/rfds/about)**：用于规范变更提案。
+- **[GitHub Discussions](https://github.com/orgs/agentclientprotocol/discussions)**：用于结构化的长篇讨论。
+- **[GitHub Issues](https://github.com/agentclientprotocol/agent-client-protocol/issues)**：用于可操作的任务、错误报告和功能请求。
+
+所有沟通都受我们的[行为准则](https://agentclientprotocol.com/community/code-of-conduct)约束。我们期望所有参与者在所有渠道保持尊重、专业和包容的互动。
+
+### Zulip
+
+用于实时的贡献者讨论和协作。服务器围绕**ACP贡献者**设计，不打算成为一般ACP支持的地方。
+
+Zulip服务器将有公共和私人频道。
+
+[在此加入Zulip](https://agentclientprotocol.zulipchat.com/)。
+
+#### 公共频道（默认）
+
+- **目的**：开放的社区参与、协作开发和透明的项目协调。
+- 主要用例：
+  - **公共SDK和工具开发**
+  - **社区入职**和贡献指导。
+  - **社区反馈**和协作头脑风暴。
+- 避免：
+  - ACP用户支持：参与者应阅读官方文档，并为问题或支持启动新的GitHub Discussions。
+  - 服务或产品营销：此Zulip上的互动应为供应商中立，不用于品牌建设或销售。除用作示例或回应以规范为重点的对话外，不鼓励提及品牌或产品。
+
+#### 私人频道（例外情况）
+
+- **目的**：无法公开讨论的机密协调和敏感事项。访问将限制于指定的维护者。
+- **私人使用的严格标准**：
+  - **安全事件**（CVE、协议漏洞）。
+  - **人事事项**（与维护者相关的讨论、行为准则政策）。
+  - 部分频道将配置为**只读**。例如，这对于维护者决策制定很有好处。
+  - 需要与有限受众进行**即时**或**集中响应**的协调。
+- **透明度**：
+  - 影响社区的**所有技术和治理决策**必须记录在RFD、GitHub Discussions和/或Issues中。
+  - 与个别贡献者相关的**某些事项**在适当情况下可以保密（例如个人情况、纪律处分或其他敏感的个人事项）。
+  - 私人频道应用作**临时的"事件处理室"**，而不是用于常规开发。
+
+Any significant discussion on Zulip leads to a potential decision or proposal must be moved to an RFD, GitHub Discussion, or GitHub Issue to create a persistent, searchable record. Proposals will then be promoted to full-fledged PRs with associated work items as needed.
+
+### RFDs
+
+Please refer to the [RFD process](https://agentclientprotocol.com/rfds/about) for how this is managed. This is the primary way to actually create changes to the protocol.
+
+Conversation about a given RFD can take place within the relevant PRs created to move the RFD forward. Or, a discussion within Zulip can be created in the `rfds` channel to discuss in real-time with other contributors.
+
+### GitHub Discussions
+
+For structured, long-form discussion and debate on project direction, features, improvements, and community topics.
+
+When to use:
+
+- Announcements and release communications
+- Community polls and consensus-building processes
+- Feature requests with context and rationale
+  - If a particular repository does not have GitHub Discussions enabled, feel free to open a GitHub Issue instead.
+
+### GitHub Issues
+
+For bug reports, feature tracking, and actionable development tasks.
+
+When to use:
+
+- Bug reports with reproducible steps
+- Documentation improvements with specific scope
+- CI/CD problems and infrastructure issues
+- Release tasks and milestone tracking
+
+### Security Issues
+
+**Do not post security issues publicly.** Instead:
+
+1. Contact lead and/or core maintainers, or hi@zed.dev directly.
+2. Follow responsible disclosure guidelines.

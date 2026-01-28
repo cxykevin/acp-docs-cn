@@ -1,0 +1,271 @@
+---
+title: "会话配置选项"
+description: "代理会话的灵活配置选择器"
+---
+
+代理可以为会话提供任意列表的配置选项，允许客户端为用户提供可自定义的选择器，用于模型、模式、推理级别等。
+
+<Info>
+  会话配置选项是暴露会话级别配置的首选方式。如果代理提供 `configOptions`，客户端**应该**使用它们，而不是已弃用的[`modes`](../session-modes)字段。
+</Info>
+
+## 初始状态
+
+在[会话设置](../session-setup)期间，代理**可以**返回配置选项列表及其当前值：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "sessionId": "sess_abc123def456",
+    "configOptions": [
+      {
+        "id": "mode",
+        "name": "会话模式",
+        "description": "控制代理如何请求权限",
+        "category": "mode",
+        "type": "select",
+        "currentValue": "ask",
+        "options": [
+          {
+            "value": "ask",
+            "name": "询问",
+            "description": "在进行任何更改之前请求权限"
+          },
+          {
+            "value": "code",
+            "name": "代码",
+            "description": "使用完整工具访问权限编写和修改代码"
+          }
+        ]
+      },
+      {
+        "id": "model",
+        "name": "模型",
+        "category": "model",
+        "type": "select",
+        "currentValue": "model-1",
+        "options": [
+          {
+            "value": "model-1",
+            "name": "模型 1",
+            "description": "最快的模型"
+          },
+          {
+            "value": "model-2",
+            "name": "模型 2",
+            "description": "最强大的模型"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+<ResponseField name="configOptions" type="ConfigOption[]">
+  此会话可用的配置选项列表。此数组的顺序代表代理的优先优先级。客户端在显示选项时**应该**尊重此排序。
+</ResponseField>
+
+### ConfigOption
+
+<ResponseField name="id" type="string" required>
+  此配置选项的唯一标识符。设置值时使用。
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  选项的人类可读标签
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  提供有关此选项控制的更多详细信息的可选描述
+</ResponseField>
+
+<ResponseField name="category" type="ConfigOptionCategory">
+  可选的[语义类别](#option-categories)，帮助客户端提供一致的 UX
+</ResponseField>
+
+<ResponseField name="type" type="ConfigOptionType" required>
+  输入控件的类型。目前仅支持 `select`。
+</ResponseField>
+
+<ResponseField name="currentValue" type="string" required>
+  此选项当前选定的值
+</ResponseField>
+
+<ResponseField name="options" type="ConfigOptionValue[]" required>
+  此选项的可用值
+</ResponseField>
+
+### ConfigOptionValue
+
+<ResponseField name="value" type="string" required>
+  设置此选项时使用的值标识符
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  要显示的人类可读名称
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  此值功能的具体描述
+</ResponseField>
+
+## 选项类别
+
+每个配置选项**可以**包含一个 `category` 字段。类别是语义元数据，旨在帮助客户端提供一致的 UX，例如附加键盘快捷键、选择图标或决定放置位置。
+
+<Warning>
+  类别仅用于 UX 目的，**不得**用于正确性要求。客户端**必须**优雅地处理缺失或未知的类别。
+</Warning>
+
+以下划线（`_`）开头的类别名称可免费用于自定义用途（例如 `_my_custom_category`）。以下划线开头的类别名称是为 ACP 规范保留的。
+
+| 类别            | 描述                      |
+| --------------- | ------------------------ |
+| `mode`          | 会话模式选择器            |
+| `model`         | 模型选择器                |
+| `thought_level` | 思考/推理级别选择器       |
+
+当多个选项共享同一类别时，客户端**应该**使用数组排序来解决并列情况，优先选择列表中较早的选项以进行突出放置或键盘快捷键。
+
+## 选项排序
+
+`configOptions` 数组的顺序很重要。代理**应该**将高优先级选项放在列表前面。
+
+客户端**应该**：
+
+- 按代理提供的顺序显示选项
+- 使用排序来解决多个选项共享同一类别时的并列情况
+- 如果显示的选项数量有限，优先选择列表开头的选项
+
+## 默认值和优雅降级
+
+代理**必须**始终为每个配置选项提供默认值。这确保即使以下情况发生，代理也能正确运行：
+
+- 客户端不支持配置选项
+- 客户端选择不显示某些选项
+- 客户端接收到它不识别的选项类型
+
+如果客户端接收到具有无法识别的 `type` 的选项，它**应该**忽略该选项。代理将继续使用其默认值。
+
+## 设置配置选项
+
+配置选项的当前值可以在会话期间的任何时间点更改，无论代理是空闲还是正在生成响应。
+
+### 来自客户端
+
+客户端可以通过调用 `session/set_config_option` 方法来更改配置选项值：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "session/set_config_option",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "configId": "mode",
+    "value": "code"
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  会话的 ID
+</ParamField>
+
+<ParamField path="configId" type="string" required>
+  要更改的配置选项的 `id`
+</ParamField>
+
+<ParamField path="value" type="string" required>
+  要设置的新值。必须是选项的 `options` 数组中列出的值之一。
+</ParamField>
+
+代理**必须**用所有配置选项及其当前值的完整列表进行响应：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "configOptions": [
+      {
+        "id": "mode",
+        "name": "会话模式",
+        "type": "select",
+        "currentValue": "code",
+        "options": [...]
+      },
+      {
+        "id": "model",
+        "name": "模型",
+        "type": "select",
+        "currentValue": "model-1",
+        "options": [...]
+      }
+    ]
+  }
+}
+```
+
+<Note>
+  响应始终包含**完整**的配置状态。这允许代理反映依赖更改。例如，如果更改模型影响可用的推理选项，或者选项的可用值基于另一个选择而更改。
+</Note>
+
+### 来自代理
+
+代理也可以更改配置选项，并通过发送 `config_options_update` 会话通知来通知客户端：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "config_options_update",
+      "configOptions": [
+        {
+          "id": "mode",
+          "name": "会话模式",
+          "type": "select",
+          "currentValue": "code",
+          "options": [...]
+        },
+        {
+          "id": "model",
+          "name": "模型",
+          "type": "select",
+          "currentValue": "model-2",
+          "options": [...]
+        }
+      ]
+    }
+  }
+}
+```
+
+此通知也包含完整的配置状态。代理可能更新配置选项的常见原因包括：
+
+- 在完成计划阶段后切换模式
+- 由于速率限制或错误而回退到不同的模型
+- 根据执行期间发现的上下文调整可用选项
+
+## 与会话模式的关系
+
+会话配置选项取代旧的[会话模式](../session-modes) API。然而，在过渡期间，提供类似模式配置的代理**应该**同时发送两者：
+
+- 对于支持配置选项的客户端，发送带有 `category: "mode"` 选项的 `configOptions`
+- 对于仅支持旧 API 的客户端，发送 `modes`
+
+如果代理在会话响应中同时提供 `configOptions` 和 `modes`：
+
+- 支持配置选项的客户端**应该**专门使用 `configOptions` 并忽略 `modes`
+- 不支持配置选项的客户端**应该**回退到 `modes`
+- 代理**应该**保持两者同步，以确保无论客户端使用哪个字段都能获得一致的行为
+
+<Card icon="toggle-on" horizontal href="../session-modes">
+  了解已弃用的会话模式 API
+</Card>

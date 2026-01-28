@@ -1,0 +1,20 @@
+---
+title: "TypeScript"
+description: "代理客户端协议的TypeScript库"
+---
+
+[@agentclientprotocol/sdk](https://www.npmjs.com/package/@agentclientprotocol/sdk) npm 包提供了代理客户端协议双方的实现，可用于构建自己的代理服务器或客户端。
+
+开始使用，将包作为依赖项添加到您的项目中：
+
+```bash
+npm install @agentclientprotocol/sdk
+```
+
+根据您构建的工具类型，您需要使用 [AgentSideConnection](https://agentclientprotocol.github.io/typescript-sdk/classes/AgentSideConnection.html) 类或 [ClientSideConnection](https://agentclientprotocol.github.io/typescript-sdk/classes/ClientSideConnection.html) 类来建立与ACP对应方的通信。
+
+您可以在[主仓库](https://github.com/agentclientprotocol/typescript-sdk/tree/main/src/examples)中找到双方的示例实现。这些可以从您的终端或从ACP客户端如[Zed](https://zed.dev)运行，使它们成为您自己集成的绝佳起点！
+
+浏览[TypeScript库参考](https://agentclientprotocol.github.io/typescript-sdk)以获取详细的API文档。
+
+有关ACP代理的完整、生产就绪实现，请查看 [Gemini CLI](https://github.com/google-gemini/gemini-cli/blob/main/packages/cli/src/zed-integration/zedIntegration.ts)。

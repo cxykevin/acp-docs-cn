@@ -1,0 +1,276 @@
+---
+title: "终端"
+description: "执行和管理终端命令"
+---
+
+终端方法允许代理在客户端环境中执行 shell 命令。这些方法使代理能够运行构建过程、执行脚本并与命令行工具交互，同时提供实时输出流和进程控制。
+
+## 检查支持
+
+在尝试使用终端方法之前，代理**必须**通过在 `initialize` 响应中检查 [客户端功能](./initialization#client-capabilities) 字段来验证客户端是否支持此功能：
+
+```json highlight={7}
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "protocolVersion": 1,
+    "clientCapabilities": {
+      "terminal": true
+    }
+  }
+}
+```
+
+如果 `terminal` 为 `false` 或不存在，则代理**不得**尝试调用任何终端方法。
+
+## 执行命令
+
+`terminal/create` 方法在新终端中启动命令：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "terminal/create",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "command": "npm",
+    "args": ["test", "--coverage"],
+    "env": [
+      {
+        "name": "NODE_ENV",
+        "value": "test"
+      }
+    ],
+    "cwd": "/home/user/project",
+    "outputByteLimit": 1048576
+  }
+}
+```
+
+<ParamField path="sessionId" type="SessionId" required>
+  此请求的[会话 ID](./session-setup#session-id)
+</ParamField>
+
+<ParamField path="command" type="string" required>
+  要执行的命令
+</ParamField>
+
+<ParamField path="args" type="string[]">
+  命令参数数组
+</ParamField>
+
+<ParamField path="env" type="EnvVariable[]">
+  命令的环境变量。
+
+每个变量包含：
+
+- `name`：环境变量名称
+- `value`：环境变量值
+
+</ParamField>
+
+<ParamField path="cwd" type="string">
+  命令的工作目录（绝对路径）
+</ParamField>
+
+<ParamField path="outputByteLimit" type="number">
+  要保留的最大输出字节数。一旦超过，早期的输出将被截断以保持在此限制内。
+
+当超过限制时，客户端从输出开头截断以保持在此限制内。
+
+客户端**必须**确保在字符边界处截断，以保持有效的字符串输出，即使这意味着保留的输出略小于指定限制。
+
+</ParamField>
+
+客户端立即返回终端 ID，无需等待完成：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "result": {
+    "terminalId": "term_xyz789"
+  }
+}
+```
+
+这允许命令在后台运行，同时代理执行其他操作。
+
+创建终端后，代理可以使用 `terminal/wait_for_exit` 方法等待命令完成。
+
+<Note>
+  当不再需要时，代理**必须**使用 `terminal/release` 释放终端。
+</Note>
+
+## 嵌入工具调用
+
+终端可以直接嵌入[工具调用](./tool-calls)中，以向用户提供实时输出：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "tool_call",
+      "toolCallId": "call_002",
+      "title": "运行测试",
+      "kind": "execute",
+      "status": "in_progress",
+      "content": [
+        {
+          "type": "terminal",
+          "terminalId": "term_xyz789"
+        }
+      ]
+    }
+  }
+}
+```
+
+当终端嵌入工具调用时，客户端在生成时显示实时输出，并在释放终端后继续显示。
+
+## 获取输出
+
+`terminal/output` 方法检索当前终端输出，无需等待命令完成：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "terminal/output",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "terminalId": "term_xyz789"
+  }
+}
+```
+
+客户端响应当前输出和退出状态（如果命令已完成）：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "result": {
+    "output": "Running tests...\n✓ All tests passed (42 total)\n",
+    "truncated": false,
+    "exitStatus": {
+      "exitCode": 0,
+      "signal": null
+    }
+  }
+}
+```
+
+<ResponseField name="output" type="string" required>
+  到目前为止捕获的终端输出
+</ResponseField>
+
+<ResponseField name="truncated" type="boolean" required>
+  输出是否因字节限制而被截断
+</ResponseField>
+
+<ResponseField name="exitStatus" type="TerminalExitStatus">
+  仅在命令已退出时存在。包含：
+
+- `exitCode`：进程退出代码（可能为 null）
+- `signal`：终止进程的信号（可能为 null）
+
+</ResponseField>
+
+## 等待退出
+
+`terminal/wait_for_exit` 方法在命令完成时返回：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "terminal/wait_for_exit",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "terminalId": "term_xyz789"
+  }
+}
+```
+
+客户端在命令退出时响应：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "result": {
+    "exitCode": 0,
+    "signal": null
+  }
+}
+```
+
+<ResponseField name="exitCode" type="number">
+  进程退出代码（如果被信号终止则可能为 null）
+</ResponseField>
+
+<ResponseField name="signal" type="string">
+  终止进程的信号（如果正常退出则可能为 null）
+</ResponseField>
+
+## 终止命令
+
+`terminal/kill` 方法终止命令而不释放终端：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "terminal/kill",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "terminalId": "term_xyz789"
+  }
+}
+```
+
+终止命令后，终端保持有效，可与以下方法一起使用：
+
+- `terminal/output` 获取最终输出
+- `terminal/wait_for_exit` 获取退出状态
+
+代理在使用完毕后**必须**仍然调用 `terminal/release`。
+
+### 构建超时
+
+代理可以通过组合终端方法实现命令超时：
+
+1. 使用 `terminal/create` 创建终端
+2. 为所需的超时持续时间启动计时器
+3. 并发等待计时器到期或 `terminal/wait_for_exit` 返回
+4. 如果计时器先到期：
+   - 调用 `terminal/kill` 终止命令
+   - 调用 `terminal/output` 检索任何最终输出
+   - 将输出包含在对模型的响应中
+5. 完成后调用 `terminal/release`
+
+## 释放终端
+
+`terminal/release` 终止仍在运行的命令并释放所有资源：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "method": "terminal/release",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "terminalId": "term_xyz789"
+  }
+}
+```
+
+释放后，终端 ID 对所有其他 `terminal/*` 方法变为无效。
+
+如果终端已添加到工具调用，客户端**应该**在释放后继续显示其输出。

@@ -1,0 +1,82 @@
+---
+title: "代理计划"
+description: "代理如何传达其执行计划"
+---
+
+计划是需要多个步骤的复杂任务的执行策略。
+
+代理可以通过 [`session/update`](./prompt-turn#3-agent-reports-output) 通知与客户端共享计划，提供对其思考和进度的实时可见性。
+
+## 创建计划
+
+当语言模型创建执行计划时，代理**应该**向客户端报告：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "session/update",
+  "params": {
+    "sessionId": "sess_abc123def456",
+    "update": {
+      "sessionUpdate": "plan",
+      "entries": [
+        {
+          "content": "分析现有代码库结构",
+          "priority": "high",
+          "status": "pending"
+        },
+        {
+          "content": "识别需要重构的组件",
+          "priority": "high",
+          "status": "pending"
+        },
+        {
+          "content": "为关键函数创建单元测试",
+          "priority": "medium",
+          "status": "pending"
+        }
+      ]
+    }
+  }
+}
+```
+
+<ParamField path="entries" type="PlanEntry[]" required>
+  表示要完成的任务的[计划条目](#plan-entries)数组
+</ParamField>
+
+## 计划条目
+
+每个计划条目代表整体执行策略中的特定任务或目标：
+
+<ParamField path="content" type="string" required>
+  此任务旨在完成的内容的人类可读描述
+</ParamField>
+
+<ParamField path="priority" type="PlanEntryPriority" required>
+  此任务的相对重要性。
+
+- `high`
+- `medium`
+- `low`
+
+</ParamField>
+
+<ParamField path="status" type="PlanEntryStatus" required>
+  此任务的当前[执行状态](#status)
+
+- `pending`
+- `in_progress`
+- `completed`
+
+</ParamField>
+
+## 更新计划
+
+随着代理在计划中的进展，它**应该**通过发送更多具有相同结构的 `session/update` 通知来报告更新。
+
+代理**必须**在每次更新中发送所有计划条目的完整列表及其当前状态。客户端**必须**完全替换当前计划。
+
+### 动态计划
+
+计划可以在执行期间演变。代理**可以**在发现新要求或完成任务时添加、删除或修改计划条目，使其能够根据所学内容进行调整。

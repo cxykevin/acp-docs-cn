@@ -1,0 +1,114 @@
+---
+title: 更新
+description: Agent Client Protocol 的更新和公告
+rss: true
+---
+
+<Update label="2026年1月15日" tags={["RFD"]}>
+## 基于 SACP 的 Rust SDK RFD 进入 Draft 阶段
+
+基于 SACP 的 Rust SDK 的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/rust-sdk-v1) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年1月15日" tags={["RFD"]}>
+## Session Config Options RFD 进入 Preview 阶段
+
+为协议添加更通用的 Session Config Options 的 RFD 已进入 Preview 阶段。请查看 [RFD](./rfds/session-config-options) 了解当前提案的更多信息，并在功能稳定之前提供反馈。
+
+</Update>
+
+<Update label="2026年1月14日" tags={["RFD"]}>
+## Authentication Methods RFD 进入 Draft 阶段
+
+创建额外认证方法类型的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/auth-methods) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2026年1月1日" tags={["RFD"]}>
+## Agent Registry RFD 进入 Draft 阶段
+
+创建 Agent Registry 的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/acp-agent-registry) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2026年1月1日" tags={["RFD"]}>
+## Session Usage RFD 进入 Draft 阶段
+
+在协议的 `session/update` 通知中添加新的 `usage_update` 变体，并在 prompt 响应中添加 `usage` 字段的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-usage) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年12月31日" tags={["RFD"]}>
+## Proxy Chains RFD 进入 Draft 阶段
+
+在协议中添加代理链功能的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/proxy-chains) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年12月11日" tags={["RFD"]}>
+## Agent Telemetry Export RFD 进入 Draft 阶段
+
+为 agent 应如何导出遥测数据提供更多信息指导的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/agent-telemetry-export) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年12月3日" tags={["RFD"]}>
+## session_info_update 通知 RFD 进入 Draft 阶段
+
+在协议的 `session/update` 通知中添加新的 `session_info_update` 变体的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-info-update) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年12月3日" tags={["RFD"]}>
+## _meta 传播 RFD 进入 Draft 阶段
+
+为协议中应如何使用 `_meta` 参数提供更多指导的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/meta-propagation) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年11月26日" tags={["RFD"]}>
+## session/resume RFD 进入 Draft 阶段
+
+在协议中添加 "session/resume" 方法的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-resume) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年11月20日" tags={["RFD"]}>
+## $/cancelRequest RFD 进入 Draft 阶段
+
+在协议中添加 "$/cancelRequest" 方法的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/request-cancellation) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年11月20日" tags={["RFD"]}>
+## session/fork RFD 进入 Draft 阶段
+
+在协议中添加 "session/fork" 方法的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-fork) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年11月3日" tags={["RFD"]}>
+## Session Config Options RFD 进入 Draft 阶段
+
+为协议添加更通用的 Session Config Options 的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-config-options) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年10月31日" tags={["RFD"]}>
+## session/list RFD 进入 Draft 阶段
+
+在协议中添加 "session/list" 方法的 RFD 已进入 Draft 阶段。请查看 [RFD](./rfds/session-list) 了解当前提案的更多信息，并在实现工作开始时提供反馈。
+
+</Update>
+
+<Update label="2025年10月24日" tags={["Protocol"]}>
+## Agent 和 Client 的实现信息
+
+Agent 和 Client 现在能够向对方[提供关于自身的信息](./protocol/initialization#implementation-information)。[`InitializeRequest`](./protocol/schema#initializerequest) 消息现在包含可选的 `clientInfo` 字段，[`InitializeResponse`](./protocol/schema#initializeresponse) 消息包含可选的 `agentInfo` 字段。
+
+这些信息可以被 Client 用来向用户显示正在运行的 Agent 及其版本，双方都可以用来跟踪其用户中最流行的 agent 和 client 的使用指标，还可以帮助追踪特定实现版本是否遇到任何问题。这遵循了 [Model Context Protocol](https://modelcontextprotocol.io/specification/2025-06-18/basic/lifecycle#initialization) 中规定的现有模式。
+
+目前为了向后兼容性，这作为可选字段引入。未来版本的协议中可能会像 MCP 一样将其设为必填字段，以便双方都可以依赖这些信息的可用性。
+
+</Update>
